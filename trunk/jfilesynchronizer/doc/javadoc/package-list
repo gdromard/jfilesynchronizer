@@ -1,0 +1,6 @@
+net.dromard.filesynchronizer
+net.dromard.filesynchronizer.gui
+net.dromard.filesynchronizer.gui.icons
+net.dromard.filesynchronizer.gui.table
+net.dromard.filesynchronizer.gui.tree
+net.dromard.filesynchronizer.treenode

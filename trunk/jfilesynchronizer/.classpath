@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="bin/dromard.filesynchronizer-0.1.jar"/>
+	<classpathentry kind="lib" path="bin/jnlp/dromard.filesynchronizer-0.1.jar"/>
+	<classpathentry kind="lib" path="bin/jnlp/lib/dromard.common-1.9.jar"/>
+	<classpathentry kind="lib" path="lib/dromard.common-1.9.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="classes"/>
+</classpath>
