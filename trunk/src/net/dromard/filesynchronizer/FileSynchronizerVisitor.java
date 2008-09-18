@@ -145,23 +145,47 @@ public class FileSynchronizerVisitor implements Visitor {
 	    	switch (todoTask) {
 	    		// Source modifications
 		    	case TODO_DELETE_SOURCE:
-		    		if (FileHelper.delete(fileBackup.getSource())) doneTask = todoTask;
+		    		if (FileHelper.delete(fileBackup.getSource())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	case TODO_CREATE_SOURCE:
-		    		if (create(fileBackup.getDestination(), fileBackup.createSource())) doneTask = todoTask;
+		    		if (create(fileBackup.getDestination(), fileBackup.createSource())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	case TODO_UPDATE_SOURCE:
-		    		if (update(fileBackup.getDestination(), fileBackup.getSource())) doneTask = todoTask;
+		    		if (update(fileBackup.getDestination(), fileBackup.getSource())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	// Destination modifications
 		    	case TODO_DELETE_DESTINATION:
-		    		if (FileHelper.delete(fileBackup.getDestination())) doneTask = todoTask;
+		    		if (FileHelper.delete(fileBackup.getDestination())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	case TODO_CREATE_DESTINATION:
-		    		if (create(fileBackup.getSource(), fileBackup.createDestination())) doneTask = todoTask;
+		    		if (create(fileBackup.getSource(), fileBackup.createDestination())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	case TODO_UPDATE_DESTINATION:
-		    		if (update(fileBackup.getSource(), fileBackup.getDestination())) doneTask = todoTask;
+		    		if (update(fileBackup.getSource(), fileBackup.getDestination())) {
+		    			doneTask = todoTask;
+		    		} else {
+		    			doneTask = TODO_ERROR;
+		    		}
 		    		break;
 		    	// No modifications
 				case TODO_ERROR:
@@ -198,9 +222,15 @@ public class FileSynchronizerVisitor implements Visitor {
 					return false;
 				}
 			}
-			if (FileHelper.copy(source, destination)) {
+			try {
+				FileHelper.copy(source, destination);
 				setLastModified(source, destination);
 				return true;
+			} catch (IOException e) {
+				System.out.println("[WARNING] Unable to copy '" + source.getPath() + "' to '" + destination.getPath() + "'.");
+				FileHelper.delete(destination);
+				//e.printStackTrace();
+				return false;
 			}
 		}
 		return false;
@@ -218,13 +248,15 @@ public class FileSynchronizerVisitor implements Visitor {
 					}
 				}
 				if (destination.createNewFile()) {
-					if (FileHelper.copy(source, destination)) {
-						setLastModified(source, destination);
-						return true;
-					}
+					FileHelper.copy(source, destination);
+					setLastModified(source, destination);
+					return true;
 				}
 			} catch (IOException e) {
-				e.printStackTrace();
+    			System.out.println("[WARNING] Unable to copy '" + source.getPath() + "' to '" + destination.getPath() + "'.");
+    			FileHelper.delete(destination);
+				//e.printStackTrace();
+    			return false;
 			}
 		}
 		return false;
