@@ -205,7 +205,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	public void startInfiniteProgress(String text) {
 		//this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progress = new InfiniteProgressPanel("");
-		progress.setPrimitiveWidth(14.0);
+		progress.setPrimitiveWidth(getWidth()/5);
 		progress.setFont(Font.decode("Century Gothic-BOLD-15"));
 		progress.setText(text);
 		setGlassPane(progress);
