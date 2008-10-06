@@ -116,7 +116,7 @@
 		| Publish on Web Server
 		|   + Java Web Start
 		+-->
-	<target name="publish" depends="jnlp">
+	<target name="publish">
 		<!-- Structure creation -->
 		<mkdir dir="${jnlp.dir}"/>
 		<mkdir dir="${jnlp.dir}/doc"/>
