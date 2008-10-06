@@ -14,14 +14,19 @@ import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTree
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import net.dromard.common.io.FileHelper;
 import net.dromard.common.util.ReflectHelper;
 import net.dromard.common.visitable.Visitor;
+import net.dromard.filesynchronizer.modules.IModule;
+import net.dromard.filesynchronizer.modules.ModuleManager;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
+import net.dromard.filesynchronizer.treenode.FileSynchronizerTreeNode;
 
 /**
  * 
@@ -34,8 +39,8 @@ public class FileSynchronizerVisitor implements Visitor {
 	/** If a read only file is detect, do we set it as writable ? */
 	protected boolean forceWrite = true;
 	
-	private int[] todo = new int[TODO_TASKS.length];
-	private int[] done = new int[TODO_TASKS.length];
+	private Map<Integer, Integer> todo = new HashMap<Integer, Integer>();
+	private Map<Integer, Integer> done = new HashMap<Integer, Integer>();
 
 	/**
 	 * Constructor with mode.
@@ -44,8 +49,6 @@ public class FileSynchronizerVisitor implements Visitor {
 	 */
 	public FileSynchronizerVisitor() {
 		this.mode = TODO_TASKS.length - 1;
-		Arrays.fill(todo, 0);
-		Arrays.fill(done, 0);
 	}
 	
 	/**
@@ -80,8 +83,8 @@ public class FileSynchronizerVisitor implements Visitor {
 		String sTodo = "";
 		String sDone = "";
 		for (int i = 0; i < TODO_TASKS.length; ++i) {
-			sTodo += "[" + TODO_TASKS[i] + "] x " + todo[i] + "  ";
-			if (!displayOnly) sDone += "[" + TODO_TASKS[i] + "] x " + done[i] + "  ";
+			sTodo += "[" + TODO_TASKS[i] + "] x " + todo.get(i) + "  ";
+			if (!displayOnly) sDone += "[" + TODO_TASKS[i] + "] x " + done.get(i) + "  ";
 		}
 		System.out.println(sTodo);
 		System.out.println(sDone);
@@ -90,7 +93,7 @@ public class FileSynchronizerVisitor implements Visitor {
     /**
      * Vist implementation.
      * @param node The element object of the tree.
-     * @throws Exception Any exception can occured during visit.
+     * @throws Exception Any exception can occurred during visit.
      */
     public final void visit(final Object node) throws Exception {
         if (!(node instanceof FileSynchronizerTodoTaskTreeNode)) {
@@ -100,20 +103,32 @@ public class FileSynchronizerVisitor implements Visitor {
     	int todoTask = TODO_NOTHING;
     	int taskDone = TODO_NOTHING;
         todoTask = fileBackup.getTodoTask();
-        todo[todoTask] += 1;
+        incrementTodo(todoTask);
         
         if (!displayOnly) {
         	taskDone = processBackup(fileBackup, todoTask);
-            done[taskDone] += 1;
+        	incrementDone(taskDone);
         }
     	processDisplay(fileBackup, todoTask, taskDone);
     	
-        for (Iterator i = fileBackup.getChilds().iterator(); i.hasNext();) {
-        	visit((FileSynchronizerTodoTaskTreeNode) (i.next()));
+        for (Iterator<FileSynchronizerTreeNode> i = fileBackup.getChilds().iterator(); i.hasNext();) {
+        	visit(i.next());
         }
     }
     
-    /**
+    private void incrementDone(int taskDone) {
+    	Integer integer = done.get(taskDone);
+        if (integer == null) integer = 0;
+		done.put(taskDone, integer + 1);
+	}
+
+	private void incrementTodo(int todoTask) {
+        Integer integer = todo.get(todoTask);
+        if (integer == null) integer = 0;
+        todo.put(todoTask, integer + 1);
+	}
+
+	/**
      * Process the comparaison of the node, display informattions and return the compare status.
      * @param fileBackup The Node to be backedup
      * @return The file compare status
@@ -139,9 +154,9 @@ public class FileSynchronizerVisitor implements Visitor {
      * @throws FileNotFoundException Can be thrown while creating a new file
      */
     protected int processBackup(final FileSynchronizerTodoTaskTreeNode fileBackup, final int todoTask) {
+    	int doneTask = TODO_NOTHING;
     	if (!displayOnly) {
-    		int doneTask = TODO_NOTHING;
-    		
+    		List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
 	    	switch (todoTask) {
 	    		// Source modifications
 		    	case TODO_DELETE_SOURCE:
@@ -190,8 +205,13 @@ public class FileSynchronizerVisitor implements Visitor {
 		    	// No modifications
 				case TODO_ERROR:
 				case TODO_NOTHING:
-				default:
 					doneTask = TODO_NOTHING;
+				default:
+					for (IModule module : modules) {
+						if (module.knowsTodoTask(todoTask)) {
+							doneTask = module.doTask(todoTask, fileBackup.getSource(), fileBackup.getDestination());
+						}
+					}
 					break;
 			}
 	    	// If all goes well reset todo task
@@ -200,9 +220,8 @@ public class FileSynchronizerVisitor implements Visitor {
 	    	} else {
 	    		fileBackup.setTodoTask(doneTask);
 	    	}
-	    	return doneTask;
     	}
-		return TODO_NOTHING;
+		return doneTask;
     }
     
     protected final boolean update(final File source, final File destination) {

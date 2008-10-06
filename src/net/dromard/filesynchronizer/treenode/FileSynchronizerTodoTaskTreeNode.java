@@ -1,7 +1,13 @@
 package net.dromard.filesynchronizer.treenode;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import net.dromard.filesynchronizer.modules.IModule;
+import net.dromard.filesynchronizer.modules.ModuleManager;
 
 /**
  * File Synchronizer Todo Status Tree Node object.
@@ -14,27 +20,17 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 	/**
 	 * Human representation of file todo status.
 	 */
-	public static final char[] TODO_TASKS = new char[] { '!', '<', '-', '+', '>', '-', '+', ' ' };
+	public static char[] TODO_TASKS = new char[] { '!', '<', '-', '+', '>', '-', '+', ' ' };
 
 	/**
 	 * Human representation of file todo status.
 	 */
-	public static final String[] TODO_TASKS_NAMES = new String[] { 
-		"An error occured during task computation", 
-		"Update source", 
-		"Delete source", 
-		"Add source", 
-		"Update destination", 
-		"Delete destination", 
-		"Add destination",
-		"Do nothing",
-		"Reset"
-		};
+	public static Map<Integer, String> TODO_TASKS_NAMES = new HashMap<Integer, String>();
 
 	/**
 	 * Force recalculation of synchronization (comparaison).
 	 */
-	public static final int TODO_RESET = TODO_TASKS.length;
+	public static final int TODO_RESET = -1;
 
 	/**
 	 * [?] Can occured if the files modification dates are equals but the files length are different.
@@ -72,9 +68,21 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 	public static final int TODO_CREATE_DESTINATION = 6;
 
 	/**
-	 * [ ] Occured if we are parsing the root folder to be synchronize.
+	 * [ ] Occurred if we are parsing the root folder to be synchronize.
 	 */
 	public static final int TODO_NOTHING = 7;
+
+	static { 
+		TODO_TASKS_NAMES.put(TODO_RESET, "Reset");
+		TODO_TASKS_NAMES.put(TODO_ERROR, "An error occured during task computation"); 
+		TODO_TASKS_NAMES.put(TODO_UPDATE_SOURCE, "Update source");
+		TODO_TASKS_NAMES.put(TODO_DELETE_SOURCE, "Delete source");
+		TODO_TASKS_NAMES.put(TODO_CREATE_SOURCE, "Add source");
+		TODO_TASKS_NAMES.put(TODO_UPDATE_DESTINATION, "Update destination"); 
+		TODO_TASKS_NAMES.put(TODO_DELETE_DESTINATION, "Delete destination");
+		TODO_TASKS_NAMES.put(TODO_CREATE_DESTINATION, "Add destination");
+		TODO_TASKS_NAMES.put(TODO_NOTHING, "Do nothing");
+	};
 
 	/* -------------------------------------------------------------------------------- */
 
@@ -136,6 +144,12 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 		} else if(getSynchronizationStatus() == SYNCHRONIZATION_SOURCE_ADDED) {
 			return TODO_CREATE_DESTINATION;
 		}
+		List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
+		for (IModule module : modules) {
+			if (module.knowsSynchronizationStatus(getSynchronizationStatus())) {
+				return module.calculateTodoTask(getSynchronizationStatus());
+			}
+		}
 		setErrorMessage("Ooops its seams that I missed a case !!");
 		return TODO_ERROR;
 	}
@@ -171,5 +185,21 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 			}
 		}
 		this.todoTask = todoTask;
+	}
+
+	public static void registerTodoTasks(char[] todoTasks, String[] todoTaskNames) {
+		// Add todo task names
+		for (String taskName : todoTaskNames) {
+			// -1 for reset !!
+			TODO_TASKS_NAMES.put(TODO_TASKS_NAMES.size()-1, taskName);
+		}
+		char[] tmp1 = new char[TODO_TASKS.length + todoTasks.length];
+		for (int i = 0; i < TODO_TASKS.length; ++i) {
+			tmp1[i] = TODO_TASKS[i];
+		}
+		for (int i = 0; i < todoTasks.length; ++i) {
+			tmp1[TODO_TASKS.length + i] = todoTasks[i];
+		}
+		TODO_TASKS = tmp1;
 	}
 }

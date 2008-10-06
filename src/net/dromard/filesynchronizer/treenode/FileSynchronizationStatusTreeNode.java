@@ -1,6 +1,10 @@
 package net.dromard.filesynchronizer.treenode;
 
 import java.io.File;
+import java.util.List;
+
+import net.dromard.filesynchronizer.modules.IModule;
+import net.dromard.filesynchronizer.modules.ModuleManager;
 
 /**
  * File Synchronization Status Tree Node object.
@@ -11,7 +15,7 @@ public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode 
 	/**
 	 * Human representation of file compare result.
 	 */
-	public static final char[] SYNCHRONIZATION_STATUS = new char[] { '!', '-', '+', '<', '>', '=' };
+	public static char[] SYNCHRONIZATION_STATUS = new char[] { '!', '-', '+', '<', '>', '=' };
 	
 	/**
 	 * Force recalculation of todo.
@@ -101,34 +105,43 @@ public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode 
 	 * @return A character giving the compartion result (see class field for details)
 	 */
 	private final int synchronize() {
+		int synchronizeStatus = SYNCHRONIZATION_ERROR;
+		
 		if ((getSource() == null || !getSource().exists()) && (getDestination() == null || !getDestination().exists())) {
-			return SYNCHRONIZATION_FILES_EQUALS;
+			synchronizeStatus = SYNCHRONIZATION_FILES_EQUALS;
 		} else if (getSource() == null && getDestination() != null && getDestination().exists()) {
-			return SYNCHRONIZATION_SOURCE_DELETED;
+			synchronizeStatus = SYNCHRONIZATION_SOURCE_DELETED;
 		} else if (getSource() != null && (getDestination() == null || !getDestination().exists())) {
-			return SYNCHRONIZATION_SOURCE_ADDED;
+			synchronizeStatus = SYNCHRONIZATION_SOURCE_ADDED;
 		} else if (!getSource().isDirectory() && !getSource().isFile()) {
 			setSynchronizationErrorMessage("Source is neither a directory neither a file !!");
-			return SYNCHRONIZATION_ERROR;
+			synchronizeStatus = SYNCHRONIZATION_ERROR;
 		} else if (getSource().isDirectory() != getDestination().isDirectory() || getSource().isFile() != getDestination().isFile()) {
 			setSynchronizationErrorMessage("Files types are differents !!");
-			return SYNCHRONIZATION_ERROR;
+			synchronizeStatus = SYNCHRONIZATION_ERROR;
 		} else if (getSource().getName().equals(getDestination().getName()) || getParent() == null) {
 			if ((getSource().isDirectory() && getDestination().isDirectory()) || (getSource().length() == getDestination().length() && getSource().lastModified() <= getDestination().lastModified())) {
-				return SYNCHRONIZATION_FILES_EQUALS;
+				synchronizeStatus = SYNCHRONIZATION_FILES_EQUALS;
 			} else if (getSource().lastModified() > getDestination().lastModified()) {
-				return SYNCHRONIZATION_SOURCE_CHANGED;
+				synchronizeStatus = SYNCHRONIZATION_SOURCE_CHANGED;
 			} else if (getSource().lastModified() < getDestination().lastModified()) {
 				if (getSource().length() == getDestination().length()) {
-					return SYNCHRONIZATION_FILES_EQUALS;
+					synchronizeStatus = SYNCHRONIZATION_FILES_EQUALS;
 				}
-				return SYNCHRONIZATION_DESTINATION_CHANGED;
+				synchronizeStatus = SYNCHRONIZATION_DESTINATION_CHANGED;
+			} else {
+				setSynchronizationErrorMessage("Oopps I migth have missed something !!");
 			}
-			setSynchronizationErrorMessage("Oopps I migth have missed something !!");
-			return SYNCHRONIZATION_ERROR;
 		}
-		setSynchronizationErrorMessage("Oopps I did not manage to compare files !!");
-		return SYNCHRONIZATION_ERROR;
+		List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
+		for (IModule module : modules) {
+			synchronizeStatus = module.synchronize(synchronizeStatus, getSource(), getDestination());
+		}
+		
+		if (synchronizeStatus == SYNCHRONIZATION_ERROR) {
+			setSynchronizationErrorMessage("Oopps I did not manage to compare files !!");
+		}
+		return synchronizeStatus;
 	}
 
 	protected final void resetSynchronization() {
@@ -140,5 +153,16 @@ public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode 
 			synchronizeStatus = synchronize();
 		}
 		return synchronizeStatus;
+	}
+
+	public static void registerSynchronizationStatus(char[] retrieveSynchronizationStatus) {
+		char[] tmp = new char[SYNCHRONIZATION_STATUS.length + retrieveSynchronizationStatus.length];
+		for (int i = 0; i < SYNCHRONIZATION_STATUS.length; ++i) {
+			tmp[i] = SYNCHRONIZATION_STATUS[i];
+		}
+		for (int i = 0; i < retrieveSynchronizationStatus.length; ++i) {
+			tmp[SYNCHRONIZATION_STATUS.length + i] = retrieveSynchronizationStatus[i];
+		}
+		SYNCHRONIZATION_STATUS = tmp;
 	}
 }

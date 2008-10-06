@@ -1,5 +1,6 @@
 package net.dromard.filesynchronizer.gui.table;
 
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import javax.swing.JTable;
@@ -37,12 +38,12 @@ public class FileTableManager extends AbstractManager {
 		table.setModel(sorterModel);
 		sorterModel.setTableHeader(table.getTableHeader());
 		// Set the first visible column to 100 pixels wide
-		table.getColumnModel().getColumn(0).setPreferredWidth(40);
-		table.getColumnModel().getColumn(0).setMaxWidth(60);
-		table.getColumnModel().getColumn(2).setPreferredWidth(80);
-		table.getColumnModel().getColumn(2).setMaxWidth(100);
-		table.getColumnModel().getColumn(3).setPreferredWidth(80);
-		table.getColumnModel().getColumn(3).setMaxWidth(100);
+		table.getColumnModel().getColumn(0).setMinWidth(40);
+		table.getColumnModel().getColumn(0).setMaxWidth(70);
+		table.getColumnModel().getColumn(2).setMinWidth(80);
+		table.getColumnModel().getColumn(2).setMaxWidth(120);
+		table.getColumnModel().getColumn(3).setMinWidth(80);
+		table.getColumnModel().getColumn(3).setMaxWidth(120);
 	}
     
 	@Override
@@ -55,7 +56,21 @@ public class FileTableManager extends AbstractManager {
 		}
         return selectedItems;
     }
-	
+
+    /**
+     * Used for popup management.
+     * @param event Event.
+     */
+    @Override
+    public final void mouseReleased(final MouseEvent event) {
+    	super.mouseReleased(event);
+        int row = table.rowAtPoint(event.getPoint());
+        if (event.getButton() == MouseEvent.BUTTON3 && !table.isRowSelected(row)) {
+        	table.clearSelection();
+        	table.addRowSelectionInterval(row, row);
+        }
+    }
+
 	@Override
 	protected AbstractModel getAbstractModel() {
 		return getModel();

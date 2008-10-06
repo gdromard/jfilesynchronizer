@@ -9,15 +9,7 @@ import javax.swing.ImageIcon;
 
 import net.dromard.filesynchronizer.gui.icons.Icons;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_TASKS_NAMES;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_ERROR;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_DELETE_DESTINATION;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_DELETE_SOURCE;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_CREATE_DESTINATION;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_CREATE_SOURCE;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_UPDATE_DESTINATION;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_UPDATE_SOURCE;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_NOTHING;
+import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.*;
 
 public class IconManager {
 	public static boolean synchronize = false;
@@ -25,23 +17,24 @@ public class IconManager {
 	private static final Hashtable<String, ImageIcon> folders  = new Hashtable<String, ImageIcon>();
 	private static final Hashtable<String, ImageIcon> leafs    = new Hashtable<String, ImageIcon>();
 	private static final Hashtable<String, ImageIcon> overlays = new Hashtable<String, ImageIcon>();
-	private static final String[] IMAGE_TYPES = new String[TODO_TASKS_NAMES.length];
+	public static final Hashtable<Integer, String> IMAGE_TYPES = new Hashtable<Integer, String>();
 	
 	static {
-		IMAGE_TYPES[TODO_ERROR] = "ERROR";
-		IMAGE_TYPES[TODO_DELETE_SOURCE] = "DELETE_SRC";
-		IMAGE_TYPES[TODO_DELETE_DESTINATION] = "DELETE_DST";
-		IMAGE_TYPES[TODO_CREATE_SOURCE] = "CREATE_SRC";
-		IMAGE_TYPES[TODO_CREATE_DESTINATION] = "CREATE_DST";
-		IMAGE_TYPES[TODO_UPDATE_SOURCE] = "UPDATE_SRC";
-		IMAGE_TYPES[TODO_UPDATE_DESTINATION] = "UPDATE_DST";
-		IMAGE_TYPES[TODO_NOTHING] = "NONE";
-		IMAGE_TYPES[TODO_TASKS_NAMES.length - 1] = "NONE";
+		IMAGE_TYPES.put(TODO_ERROR, "ERROR");
+		IMAGE_TYPES.put(TODO_DELETE_SOURCE, "DELETE_SRC");
+		IMAGE_TYPES.put(TODO_DELETE_DESTINATION, "DELETE_DST");
+		IMAGE_TYPES.put(TODO_CREATE_SOURCE, "CREATE_SRC");
+		IMAGE_TYPES.put(TODO_CREATE_DESTINATION, "CREATE_DST");
+		IMAGE_TYPES.put(TODO_UPDATE_SOURCE, "UPDATE_SRC");
+		IMAGE_TYPES.put(TODO_UPDATE_DESTINATION, "UPDATE_DST");
 	}
 	
 	public static String getImageType(int type) {
-		if (type == -1) return IMAGE_TYPES[TODO_NOTHING];
-		return IMAGE_TYPES[type];
+		String imageType = IMAGE_TYPES.get(type);
+		if (imageType == null) {
+			return "NONE";
+		}
+		return imageType;
 	}
 	
 	public static Icon getIcon(Icon icon, int todoTask, FileSynchronizerTodoTaskTreeNode node) {
