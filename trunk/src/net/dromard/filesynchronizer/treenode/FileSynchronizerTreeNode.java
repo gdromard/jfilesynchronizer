@@ -202,7 +202,7 @@ public class FileSynchronizerTreeNode implements Visitable {
     	if (source == null) {
     		String sourcePath = getSourceAbsolutePath();
     		source = new File(sourcePath);
-    		System.out.println("Creating source file to " + source.getAbsolutePath());
+    		System.err.println("[DEBUG] Creating source file to " + source.getAbsolutePath());
     	}
         return source;
     }

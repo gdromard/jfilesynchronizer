@@ -13,7 +13,6 @@ import javax.swing.ImageIcon;
  */
 public class Icons {
     public static ImageIcon getIcon(String resource) {
-    	System.out.println("Retreiving icon for " + resource + " -> " + Icons.class.getResource(resource));
         return new ImageIcon(Icons.class.getResource(resource));
     }
 }

@@ -21,6 +21,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JMenu;
@@ -31,6 +32,8 @@ import javax.swing.SwingUtilities;
 import net.dromard.filesynchronizer.FileSynchronizerVisitor;
 import net.dromard.filesynchronizer.gui.icons.Icons;
 import net.dromard.filesynchronizer.gui.tree.JFileSynchronizerTreeNode;
+import net.dromard.filesynchronizer.modules.IModule;
+import net.dromard.filesynchronizer.modules.ModuleManager;
 
 public abstract class AbstractManager extends MouseAdapter implements ActionListener {
 	private Thread synchronizer;
@@ -69,15 +72,19 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 		processMenu.setText("Process");
 		processMenu.addActionListener(this);
     	popup.add(processMenu);
-    	popup.add(addOverlayIconsToMenu());
+    	JMenu overlayIconsMenu = addOverlayIconsToMenu();
+    	if (overlayIconsMenu != null) {
+    		popup.add(overlayIconsMenu);
+    	}
         return popup;
     }
 	
-    private final int[] getPossibleTask() {
+    private final List<Integer> getPossibleTask() {
     	ArrayList<JFileSynchronizerTreeNode> nodes = getSelectedElements();
-    	int[] possibleTask = new int[2];
-    	possibleTask[0] = TODO_NOTHING;
-    	possibleTask[1] = TODO_RESET;
+    	List<Integer> possibleTask = new ArrayList<Integer>();
+    	possibleTask.add(possibleTask.size(), TODO_NOTHING);
+    	possibleTask.add(possibleTask.size(), TODO_RESET);
+    	if (nodes.size() == 0) return null;
     	
     	int synchronizationStatus = nodes.get(0).getSynchronizationStatus(); 
     	for (JFileSynchronizerTreeNode node : nodes) {
@@ -100,43 +107,40 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
     	}
     	*/
         if (synchronizationStatus == SYNCHRONIZATION_DESTINATION_CHANGED) {
-    		possibleTask = new int[4];
-    		possibleTask[0] = TODO_UPDATE_SOURCE;
-    		possibleTask[1] = TODO_UPDATE_DESTINATION;
-    		possibleTask[2] = TODO_NOTHING;
-    		possibleTask[3] = TODO_RESET;
+        	possibleTask.add(possibleTask.size(), TODO_UPDATE_SOURCE);
+        	possibleTask.add(possibleTask.size(), TODO_UPDATE_DESTINATION);
         } else if (synchronizationStatus == SYNCHRONIZATION_SOURCE_CHANGED) {
-    		possibleTask = new int[4];
-    		possibleTask[0] = TODO_UPDATE_DESTINATION;
-    		possibleTask[1] = TODO_UPDATE_SOURCE;
-    		possibleTask[2] = TODO_NOTHING;
-    		possibleTask[3] = TODO_RESET;
+        	possibleTask.add(possibleTask.size(), TODO_UPDATE_DESTINATION);
+        	possibleTask.add(possibleTask.size(), TODO_UPDATE_SOURCE);
         } else if (synchronizationStatus == SYNCHRONIZATION_SOURCE_DELETED) {
-    		possibleTask = new int[4];
-    		possibleTask[0] = TODO_DELETE_SOURCE;
-    		possibleTask[1] = TODO_DELETE_DESTINATION;
-    		possibleTask[2] = TODO_NOTHING;
-    		possibleTask[3] = TODO_RESET;
+        	possibleTask.add(possibleTask.size(), TODO_DELETE_SOURCE);
+        	possibleTask.add(possibleTask.size(), TODO_DELETE_DESTINATION);
         } else if (synchronizationStatus == SYNCHRONIZATION_SOURCE_ADDED) {
-    		possibleTask = new int[4];
-    		possibleTask[0] = TODO_DELETE_SOURCE;
-    		possibleTask[1] = TODO_CREATE_DESTINATION;
-    		possibleTask[2] = TODO_NOTHING;
-    		possibleTask[3] = TODO_RESET;
-	    }
-        return possibleTask;
+        	possibleTask.add(possibleTask.size(), TODO_DELETE_SOURCE);
+        	possibleTask.add(possibleTask.size(), TODO_CREATE_DESTINATION);
+        }
+        List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
+        for (IModule module : modules) {
+	        if (module.knowsSynchronizationStatus(synchronizationStatus)) {
+	        	List<Integer> modulePossibleTasks = module.getPossibleTasks(synchronizationStatus);
+	        	if (modulePossibleTasks != null) {
+	        		possibleTask.addAll(possibleTask.size(), modulePossibleTasks);
+	        	}
+		    }
+        }
+    	return possibleTask;
     }
     
 	protected final JMenu addOverlayIconsToMenu() {
-		int[] possibleTask = getPossibleTask();
-		if (possibleTask != null && possibleTask.length > 0) {
+		List<Integer> possibleTasks = getPossibleTask();
+		if (possibleTasks != null && possibleTasks.size() > 0) {
 			JMenu menu = new JMenu();
 			menu.setText("Override todo task to ...");
-			for (int i = 0; i < possibleTask.length; ++i) {
+			for (int possibleTask : possibleTasks) {
 				JMenuItem todoTask = new JMenuItem();
-				todoTask.setActionCommand("TASK_" + possibleTask[i]);
-				todoTask.setIcon(Icons.getIcon(IconManager.getImageType(possibleTask[i]) + IconManager.ICON_EXTENSION));
-				todoTask.setText(TODO_TASKS_NAMES[possibleTask[i]]);
+				todoTask.setActionCommand("TASK_" + possibleTask);
+				todoTask.setIcon(Icons.getIcon(IconManager.getImageType(possibleTask) + IconManager.ICON_EXTENSION));
+				todoTask.setText(TODO_TASKS_NAMES.get(possibleTask));
 				todoTask.addActionListener(this);
 				menu.add(todoTask);
 			}
@@ -151,6 +155,9 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
      * @param event Event.
      */
     protected final void maybeShowPopup(final MouseEvent event) {
+    	if (getSelectedElements().size() > 0) {
+    		fireElementsSelected();
+    	}
         if (event.isPopupTrigger()) {
         	JPopupMenu popup = createPopupMenu();
             popup.setInvoker(event.getComponent());
@@ -158,10 +165,6 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
             popup.setLocation(invokerOrigin.x + event.getX(), invokerOrigin.y + event.getY());
             fireShowPopup(popup);
             popup.setVisible(true);
-        } else {
-        	if (getSelectedElements().size() > 0) {
-        		fireElementsSelected();
-        	}
         }
     }
 
@@ -306,12 +309,14 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
     /* ------------ Tree Selection Listener ------------ */
 
     /**
-     * Used for popup management.
+     * Used when mouse pressed.
      * @param event Event.
      */
     @Override
-    public final void mousePressed(final MouseEvent event) {
-        maybeShowPopup(event);
+    public void mousePressed(final MouseEvent event) {
+        if (event.getClickCount() > 1) {
+        	System.err.println("[DEBUG] Mouse pressed");
+        }
     }
 
     /**
@@ -319,7 +324,7 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
      * @param event Event.
      */
     @Override
-    public final void mouseReleased(final MouseEvent event) {
+    public void mouseReleased(final MouseEvent event) {
         maybeShowPopup(event);
     }
 }

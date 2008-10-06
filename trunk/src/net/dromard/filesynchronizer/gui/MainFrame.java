@@ -3,11 +3,12 @@ package net.dromard.filesynchronizer.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Date;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
@@ -16,11 +17,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -29,6 +30,7 @@ import javax.swing.WindowConstants;
 import net.dromard.common.swing.InfiniteProgressPanel;
 import net.dromard.filesynchronizer.gui.table.FileTableManager;
 import net.dromard.filesynchronizer.gui.tree.FileTreeManager;
+import net.dromard.filesynchronizer.modules.ModuleManager;
 
 
 public class MainFrame extends JFrame implements ActionListener, ManagerListener {
@@ -46,9 +48,18 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 
 
 	public MainFrame() {
-		init();
 		System.setProperty("com.apple.macos.useScreenMenuBar", "true");
 		UIManager.put("SplitPaneUI", net.dromard.common.swing.ui.MySplitPaneUI.class.getName());
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		init();
+		List<ManagerListener> listeners = ModuleManager.getInstance().registerModules();
+		for (ManagerListener listener : listeners) {
+			getTableManager().addListener(listener);
+		}
 	}
 	
 	private AbstractManager getTableManager() {
@@ -96,10 +107,21 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         leftSplitPanel.setBackground(Color.WHITE);
         leftSplitPanel.setDividerLocation(240);
 		tabbedPane.addTab("Tree View", leftSplitPanel);
-		getContentPane().add(tabbedPane, BorderLayout.CENTER);
-		//
 		
-		JMenuBar menuBar = new JMenuBar();
+		JSplitPane bottomSplitPanel = new JSplitPane();
+		bottomSplitPanel.setTopComponent(tabbedPane);
+        JTextArea control = new JTextArea();
+        new TextAreaOutputStream(control);
+        JScrollPane scrollpane = new JScrollPane(control);
+		bottomSplitPanel.setBottomComponent(scrollpane);
+        bottomSplitPanel.setOpaque(false);
+        bottomSplitPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
+        bottomSplitPanel.setBorder(null);
+        bottomSplitPanel.setBackground(Color.WHITE);
+        bottomSplitPanel.setDividerLocation(0.75);
+        getContentPane().add(bottomSplitPanel, BorderLayout.CENTER);
+
+        JMenuBar menuBar = new JMenuBar();
 		JMenu menu = new JMenu("File");
 		menuBar.add(menu);
 		
@@ -180,12 +202,12 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	}
 
 	public void synchronizeStarted(final AbstractManager initiator) {
-		System.out.println("synchronizeStarted");
+		System.out.println("Synchronization started at " + new Date());
 		startInfiniteProgress("View differences");
     }
 
     public void synchronizeFinished(final AbstractManager initiator) {
-		System.out.println("synchronizeFinished");
+		System.out.println("Synchronize Finished at " + new Date());
     	if (initiator == getTableManager()) {
     		getTreeManager().setModelToComponent(getTableManager().getAbstractModel().getRootNode());
     	}
@@ -193,23 +215,23 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     }
 
     public void processStarted(final AbstractManager initiator) {
-		System.out.println("processStarted");
+		System.out.println("Processing started at " + new Date());
 		startInfiniteProgress("Applying changes");
     }
     
 	public void processFinished(final AbstractManager initiator) {
-		System.out.println("processFinished");
+		System.out.println("Processing finished at " + new Date());
     	endInfiniteProgress();
     }
 
-	public void startInfiniteProgress(String text) {
+	public void startInfiniteProgress(final String text) {
 		//this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		progress = new InfiniteProgressPanel("");
 		progress.setPrimitiveWidth(getWidth()/5);
 		progress.setFont(Font.decode("Century Gothic-BOLD-15"));
 		progress.setText(text);
 		setGlassPane(progress);
-		SwingUtilities.updateComponentTreeUI(this);
+		//SwingUtilities.updateComponentTreeUI(this);
 		progress.start();
 	}
 	
@@ -248,20 +270,20 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         }
         return null;
     }
-	
-	public static void main(String[] args) {
+
+	public static void main(final String[] args) {
 		final MainFrame frame = new MainFrame();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                frame.setVisible(true);
                 frame.setSize(600, 600);
                 frame.setLocationRelativeTo(null);
+                frame.setVisible(true);
+                if (args.length == 2) {
+                	frame.setSource(new File(args[0]));
+                	frame.setDestination(new File(args[1]));
+                	frame.synchronize();
+                }
             }
         });
-        if (args.length == 2) {
-        	frame.setSource(new File(args[0]));
-        	frame.setDestination(new File(args[1]));
-        	frame.synchronize();
-        }
 	}
 }

@@ -1,6 +1,7 @@
 package net.dromard.filesynchronizer.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -11,6 +12,7 @@ import javax.swing.Icon;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.text.html.HTMLEditorKit;
 
 import net.dromard.filesynchronizer.gui.tree.JFileSynchronizerTreeNode;
@@ -26,9 +28,9 @@ public class FileDiffDetailsPanel extends JPanel implements GuiManagerListener {
 	public FileDiffDetailsPanel() {
 		this.setLayout(new BorderLayout(10, 10));
 		this.setOpaque(false);
-		details.setOpaque(false);
+		details.setBackground(Color.WHITE);
 		details.setEditorKit(new HTMLEditorKit());
-		this.add(details, BorderLayout.CENTER);
+		this.add(new JScrollPane(details), BorderLayout.CENTER);
 		clear();
 	}
 
