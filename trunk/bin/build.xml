@@ -45,18 +45,10 @@
 		</copy>
 		<manifest mode="update" file="${src.dir}/META-INF/MANIFEST.MF">
 			<attribute name="Main-Class" value="${main.class}" />
-			<attribute name="Class-Path" value="" />
+			<attribute name="Class-Path" value="dromard.common-1.9.jar" />
 		</manifest>
-	
-		<!--+
-			| Creating path 
-			+-->
-		<replace file="${src.dir}/META-INF/MANIFEST.MF" token="Class-Path:" value="Class-Path: ${classpath}"/>
-		<replace file="${src.dir}/META-INF/MANIFEST.MF" token="${manifest.lib.path}" value="${lib.dir}" />
-		<replace file="${src.dir}/META-INF/MANIFEST.MF" token="\" value="/" />
-		<replace file="${src.dir}/META-INF/MANIFEST.MF" token=";" value=" " />
 
-	    <jar basedir="${class.dir}" jarfile="${bin.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF" />
+	    <jar basedir="${class.dir}" jarfile="${lib.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF" />
     </target>
 	
 	<!--+
@@ -116,6 +108,17 @@
 		| Publish on Web Server
 		|   + Java Web Start
 		+-->
+	<target name="signJar">
+		<signjar alias="dromard.key" keystore="${jnlp.dir}/dromard.cert" storepass="KeystorePassword" lazy="true">		
+			<fileset dir="${jnlp.dir}/lib" includes="dromard.*.jar"/>
+			<fileset dir="${jnlp.dir}" includes="dromard.*.jar"/>
+		</signjar>
+	</target>
+
+	<!--+
+		| Publish on Web Server
+		|   + Java Web Start
+		+-->
 	<target name="publish">
 		<!-- Structure creation -->
 		<mkdir dir="${jnlp.dir}"/>
@@ -123,7 +126,7 @@
 		<mkdir dir="${jnlp.dir}/lib"/>
 		<!-- Resources -->
 		<copy todir="${jnlp.dir}/lib" overwrite="true"><fileset dir="${lib.dir}" includes="*.jar"/></copy>
-		<copy todir="${jnlp.dir}/" overwrite="true"><fileset dir="${bin.dir}" includes="${jar.name}-${project.version}.jar"/></copy>
+		<copy todir="${jnlp.dir}/" overwrite="true"><fileset dir="${lib.dir}" includes="${jar.name}-${project.version}.jar"/></copy>
 		<copy todir="${jnlp.dir}/" overwrite="true"><fileset dir="${bin.dir}/jnlp" includes="index.*"/></copy>
 		<signjar alias="Pingus.key" keystore="${jnlp.dir}/Pingus.cert" storepass="KeystorePassword" lazy="true">		
 			<fileset dir="${jnlp.dir}/lib" includes="dromard.*.jar"/>
