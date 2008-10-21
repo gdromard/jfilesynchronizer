@@ -23,16 +23,22 @@ public class FileTableModel extends AbstractModel implements TableModel {
 	private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status" };
 	//private Class[]  columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class, Double.class, Double.class, Double.class, Double.class*/ };
 	//private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status", "Source length (ko)", "Destination length (ko)", "Source timestamp", "Destination timestamp" };
+	private boolean abortVisit;
 	
 	public FileTableModel(final JFileSynchronizerTreeNode root) {
 		super(root);
 		setRootNode(root);
 	}
 	
+	public void abort() {
+		abortVisit = true;
+	}
+	
 	public void setRootNode(final JFileSynchronizerTreeNode root) {
 		if (root != null && root != getRootNode()) {
 			rows = new Vector<JFileSynchronizerTreeNode>();
 			visit(root);
+			abortVisit = false;
 		}
 		super.setRootNode(root);
 	}
@@ -133,6 +139,7 @@ public class FileTableModel extends AbstractModel implements TableModel {
 	}
 
 	protected void visit(Object node) {
+		if (abortVisit) return;
         if (!(node instanceof JFileSynchronizerTreeNode)) {
             throw new ClassCastException("JFileSynchronizerTreeNode expected");
         }

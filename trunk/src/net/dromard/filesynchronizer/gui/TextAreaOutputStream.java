@@ -29,5 +29,13 @@ public class TextAreaOutputStream extends OutputStream {
         // append the data as characters to the JTextArea control
         textControl.append( String.valueOf( ( char )b ) );
         textControl.setCaretPosition(textControl.getText().length() - 1);
-    }  
+    }
+    
+    @Override
+	public void close() throws IOException {
+    	textControl.setText("");
+    	System.setOut(System.out);
+    	System.out.println("Logs has been closed");
+		super.close();
+	}
 }

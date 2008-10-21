@@ -31,6 +31,7 @@ import javax.swing.SwingUtilities;
 
 import net.dromard.filesynchronizer.FileSynchronizerVisitor;
 import net.dromard.filesynchronizer.gui.icons.Icons;
+import net.dromard.filesynchronizer.gui.table.FileTableModel;
 import net.dromard.filesynchronizer.gui.tree.JFileSynchronizerTreeNode;
 import net.dromard.filesynchronizer.modules.IModule;
 import net.dromard.filesynchronizer.modules.ModuleManager;
@@ -52,6 +53,10 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
     
     protected abstract void setModelToComponent(final JFileSynchronizerTreeNode root);
     
+    public void stopProcesses() {
+    	processor.stop();
+    }
+
     public void addListener(final ManagerListener managerListener) {
     	listeners.add(managerListener);
     }
@@ -171,6 +176,17 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 	protected void refreshUI() {
 		SwingUtilities.updateComponentTreeUI(component);
 	}
+
+	public void stopCurrentProcess() {
+		if (synchronizer != null && synchronizer.isAlive()) {
+			synchronizer.interrupt();
+			fireSynchronizeStopped();
+		}
+		if (processor != null && processor.isAlive()) {
+			processor.interrupt();
+			fireProcessStopped();
+		}
+	}
     
 	public final void synchronize() {
 		JFileSynchronizerTreeNode root = getAbstractModel().getRootNode();
@@ -187,17 +203,18 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 	}
 	
 	public final void processSynchronization(final JFileSynchronizerTreeNode node) {
-		processor = new Thread(new Processor(node));
+		processor = new Processor(node);
 		processor.start();
 	}
 	
 	public final void processSynchronization(final ArrayList<JFileSynchronizerTreeNode> nodes) {
-		processor = new Thread(new Processor(nodes));
+		processor = new Processor(nodes);
 		processor.start();
 	}
 
-	class Processor implements Runnable {
+	class Processor extends Thread {
 		ArrayList<JFileSynchronizerTreeNode> nodes;
+		private FileSynchronizerVisitor visitor;
 		
 		public Processor(final JFileSynchronizerTreeNode node) {
 			nodes = new ArrayList<JFileSynchronizerTreeNode>();
@@ -206,11 +223,15 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 		public Processor(final ArrayList<JFileSynchronizerTreeNode> nodes) {
 			this.nodes = nodes;
 		}
+		@Override
+		public void interrupt() {
+			if (visitor != null) visitor.abort();
+		}
 
         public void run() {
     		try {
     			fireProcessStarted();
-    			FileSynchronizerVisitor visitor = new FileSynchronizerVisitor();
+    			visitor = new FileSynchronizerVisitor();
     			for (JFileSynchronizerTreeNode node : nodes) {
     				visitor.visit(node);
 				}
@@ -221,19 +242,25 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
         }
 	}
 	
-	class Synchronizer implements Runnable {
+	class Synchronizer extends Thread {
 		private final File source;
 		private final File destination;
+		private FileTableModel model;
 		public Synchronizer(final File source, final File destination) {
 			setModelToComponent(null);
 			this.source = source;
 			this.destination = destination;
 		}
+		@Override
+		public void interrupt() {
+			if (model != null)	model.abort();
+		}
 
 		public void run() {
 			fireSynchronizeStarted();
 			component.getParent().getParent().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-			getAbstractModel().setRootNode(new JFileSynchronizerTreeNode(source, destination));
+			model = (FileTableModel) getAbstractModel();
+			model.setRootNode(new JFileSynchronizerTreeNode(source, destination));
 			setModelToComponent(getAbstractModel().getRootNode());
 			component.getParent().getParent().setCursor(Cursor.getDefaultCursor());
 			fireSynchronizeFinished();
@@ -257,6 +284,12 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 			listener.synchronizeStarted(this);
 		}
     }
+	
+	public void fireSynchronizeStopped() {
+    	for (ManagerListener listener : listeners) {
+			listener.synchronizeStopped(this);
+		}
+    }
 
     public void fireSynchronizeFinished() {
     	for (ManagerListener listener : listeners) {
@@ -268,6 +301,12 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
     public void fireProcessStarted() {
     	for (ManagerListener listener : listeners) {
 			listener.processStarted(this);
+		}
+    }
+
+    public void fireProcessStopped() {
+    	for (ManagerListener listener : listeners) {
+			listener.processStopped(this);
 		}
     }
     

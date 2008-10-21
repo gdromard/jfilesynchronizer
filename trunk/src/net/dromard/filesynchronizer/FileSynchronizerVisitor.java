@@ -38,6 +38,8 @@ public class FileSynchronizerVisitor implements Visitor {
 	protected boolean displayOnly = false;
 	/** If a read only file is detect, do we set it as writable ? */
 	protected boolean forceWrite = true;
+	/** */
+	private boolean abort = false;
 	
 	private Map<Integer, Integer> todo = new HashMap<Integer, Integer>();
 	private Map<Integer, Integer> done = new HashMap<Integer, Integer>();
@@ -78,6 +80,13 @@ public class FileSynchronizerVisitor implements Visitor {
 		this(displayOnly);
 		this.mode = mode;
 	}
+	
+	/**
+	 * Stop visiting loop.
+	 */
+	public void abort() {
+		abort = true;
+	}
 
 	public void printSummary() {
 		String sTodo = "";
@@ -96,6 +105,9 @@ public class FileSynchronizerVisitor implements Visitor {
      * @throws Exception Any exception can occurred during visit.
      */
     public final void visit(final Object node) throws Exception {
+    	// Stop visiting if running has been flagged to false.
+    	if (!abort) return;
+    	
         if (!(node instanceof FileSynchronizerTodoTaskTreeNode)) {
             throw new ClassCastException("FileSynchronizerTodoTaskTreeNode expected");
         }
