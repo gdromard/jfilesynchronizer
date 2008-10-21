@@ -89,6 +89,12 @@ public class JavaSourceStatisticsModule implements IModule, ManagerListener {
 		}
 	}
 
+	public void processStopped(AbstractManager initiator) {
+	}
+
+	public void synchronizeStopped(AbstractManager initiator) {
+	}
+
 	public void processFinished(AbstractManager initiator) {
 	}
 
@@ -96,12 +102,14 @@ public class JavaSourceStatisticsModule implements IModule, ManagerListener {
 	}
 
 	public void synchronizeFinished(AbstractManager initiator) {
-		System.out.println("Number of files: " + nbFiles);
-		System.out.println("Number of lines: " + nbLines);
-		System.out.println("Number of classes: " + nbClasses);
-		System.out.println("Number of interfaces: " + nbInterfaces);
-		System.out.println("Mean lines per file: " + nbLines / nbFiles);
-		System.out.println("Mean classes per file: " + 1f * nbClasses / nbFiles);
+		if (nbFiles > 0) {
+			System.out.println("Number of files: " + nbFiles);
+			System.out.println("Number of lines: " + nbLines);
+			System.out.println("Number of classes: " + nbClasses);
+			System.out.println("Number of interfaces: " + nbInterfaces);
+			System.out.println("Mean lines per file: " + nbLines / nbFiles);
+			System.out.println("Mean classes per file: " + 1f * nbClasses / nbFiles);
+		}
 	}
 
 	public void synchronizeStarted(AbstractManager initiator) {

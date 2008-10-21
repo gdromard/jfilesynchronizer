@@ -6,7 +6,10 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +20,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -26,6 +30,8 @@ import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
+
+import sun.management.snmp.jvminstr.JvmRuntimeMetaImpl;
 
 import net.dromard.common.swing.InfiniteProgressPanel;
 import net.dromard.filesynchronizer.gui.table.FileTableManager;
@@ -38,6 +44,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	private static final String MENU_ITEM_SELECT_SOURCE = "Select Source/Destination";
 	private static final String MENU_ITEM_SYNCHRONIZE = "Synchronize";
 	private static final String MENU_ITEM_PROCESS = "Process";
+	private static final String MENU_ITEM_DISPLAY_LOGS = "Display logs";
 	private static final String MENU_ITEM_QUIT = "Quit";
 	private InfiniteProgressPanel progress;
 	private AbstractManager tableManager;
@@ -45,6 +52,10 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	
 	private File source = null;
 	private File destination = null;
+	private JTextArea control;
+	private JSplitPane bottomSplitPanel;
+	private TextAreaOutputStream textareaOutputStream;
+	private JScrollPane scrollpane;
 
 
 	public MainFrame() {
@@ -108,17 +119,18 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         leftSplitPanel.setDividerLocation(240);
 		tabbedPane.addTab("Tree View", leftSplitPanel);
 		
-		JSplitPane bottomSplitPanel = new JSplitPane();
+		bottomSplitPanel = new JSplitPane();
 		bottomSplitPanel.setTopComponent(tabbedPane);
-        JTextArea control = new JTextArea();
-        new TextAreaOutputStream(control);
-        JScrollPane scrollpane = new JScrollPane(control);
+        control = new JTextArea();
+        scrollpane = new JScrollPane(control);
 		bottomSplitPanel.setBottomComponent(scrollpane);
         bottomSplitPanel.setOpaque(false);
         bottomSplitPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
         bottomSplitPanel.setBorder(null);
         bottomSplitPanel.setBackground(Color.WHITE);
-        bottomSplitPanel.setDividerLocation(0.75);
+        control.setVisible(false);
+        scrollpane.setVisible(false);
+        bottomSplitPanel.setDividerLocation(1d);
         getContentPane().add(bottomSplitPanel, BorderLayout.CENTER);
 
         JMenuBar menuBar = new JMenuBar();
@@ -139,12 +151,33 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 		
 		menu.addSeparator();
 		
+		JRadioButtonMenuItem displayLogMenuItem = new JRadioButtonMenuItem(MENU_ITEM_DISPLAY_LOGS);
+		displayLogMenuItem.addActionListener(this);
+		menu.add(displayLogMenuItem);
+		
+		menu.addSeparator();
+		
 		JMenuItem quitMenuItem = new JMenuItem(MENU_ITEM_QUIT);
 		quitMenuItem.addActionListener(this);
 		menu.add(quitMenuItem);
 		
 		setJMenuBar(menuBar);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	}
+	
+	private void enableLog() {
+		scrollpane.setVisible(true);
+        textareaOutputStream = new TextAreaOutputStream(control);
+		this.bottomSplitPanel.setDividerLocation(0.75);
+	}
+	
+	private void disableLog() throws IOException {
+		if (textareaOutputStream != null) {
+			textareaOutputStream.close();
+			textareaOutputStream = null;
+		}
+		this.bottomSplitPanel.setDividerLocation(1d);
+		scrollpane.setVisible(false);
 	}
 
 	private void selectSourceDestination() {
@@ -206,6 +239,11 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 		startInfiniteProgress("View differences");
     }
 
+	public void synchronizeStopped(final AbstractManager initiator) {
+		System.out.println("Synchronization stopped at " + new Date());
+		progress.setText("Stopping synchronization process");
+    }
+
     public void synchronizeFinished(final AbstractManager initiator) {
 		System.out.println("Synchronize Finished at " + new Date());
     	if (initiator == getTableManager()) {
@@ -219,6 +257,11 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 		startInfiniteProgress("Applying changes");
     }
     
+    public void processStopped(final AbstractManager initiator) {
+    	System.out.println("Processing stopped at " + new Date());
+		progress.setText("Stopping process");
+    }
+
 	public void processFinished(final AbstractManager initiator) {
 		System.out.println("Processing finished at " + new Date());
     	endInfiniteProgress();
@@ -233,6 +276,18 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 		setGlassPane(progress);
 		//SwingUtilities.updateComponentTreeUI(this);
 		progress.start();
+		progress.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() > 1) {
+					int option = JOptionPane.showConfirmDialog(progress, "Do you want to stop process ?", "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (option == JOptionPane.OK_OPTION) {
+						// TODO stop process
+						getTableManager().stopCurrentProcess();
+					}
+				}
+			}
+		});
 	}
 	
 	public void endInfiniteProgress() {
@@ -245,14 +300,24 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	/* ------------     Action Listener     ------------ */
 	
 	public final void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals(MENU_ITEM_PROCESS)) {
-			process();
-		} else if (e.getActionCommand().equals(MENU_ITEM_SYNCHRONIZE)) {
-			synchronize();
-		} else if (e.getActionCommand().equals(MENU_ITEM_SELECT_SOURCE)) {
-			selectSourceDestination();
-		} else if (e.getActionCommand().equals(MENU_ITEM_QUIT)) {
-			System.exit(0);
+		try {
+			if (e.getActionCommand().equals(MENU_ITEM_PROCESS)) {
+				process();
+			} else if (e.getActionCommand().equals(MENU_ITEM_SYNCHRONIZE)) {
+				synchronize();
+			} else if (e.getActionCommand().equals(MENU_ITEM_SELECT_SOURCE)) {
+				selectSourceDestination();
+			} else if (e.getActionCommand().equals(MENU_ITEM_DISPLAY_LOGS)) {
+				if (((JRadioButtonMenuItem) e.getSource()).isSelected()) {
+					enableLog();
+				} else {
+					disableLog();
+				}
+			} else if (e.getActionCommand().equals(MENU_ITEM_QUIT)) {
+				System.exit(0);
+			}
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 	
