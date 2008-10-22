@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<jnlp spec="1.0+" version="0.1" codebase="http://jfilesynchronizer.googlecode.com/svn/trunk/lib/jnlp" href="dromard.filesynchronizer.jnlp">
+<jnlp spec="1.0+" version="0.1" codebase="http://jfilesynchronizer.googlecode.com/svn/trunk/lib/jnlp" href="dromard.filesynchronizer-0.1.1.jnlp">
 	<information>
 		<title>dromard.filesynchronizer</title>
 		<vendor>Gabriel DROMARD</vendor>
