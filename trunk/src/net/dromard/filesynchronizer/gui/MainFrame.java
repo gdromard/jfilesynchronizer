@@ -31,8 +31,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
-import sun.management.snmp.jvminstr.JvmRuntimeMetaImpl;
-
 import net.dromard.common.swing.InfiniteProgressPanel;
 import net.dromard.filesynchronizer.gui.table.FileTableManager;
 import net.dromard.filesynchronizer.gui.tree.FileTreeManager;
@@ -128,7 +126,6 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         bottomSplitPanel.setOrientation(JSplitPane.VERTICAL_SPLIT);
         bottomSplitPanel.setBorder(null);
         bottomSplitPanel.setBackground(Color.WHITE);
-        control.setVisible(false);
         scrollpane.setVisible(false);
         bottomSplitPanel.setDividerLocation(1d);
         getContentPane().add(bottomSplitPanel, BorderLayout.CENTER);
@@ -167,14 +164,17 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 	
 	private void enableLog() {
 		scrollpane.setVisible(true);
-        textareaOutputStream = new TextAreaOutputStream(control);
+		if (textareaOutputStream != null) {
+			textareaOutputStream.enable(true);
+		} else {
+			textareaOutputStream = new TextAreaOutputStream(control);
+		}
 		this.bottomSplitPanel.setDividerLocation(0.75);
 	}
 	
 	private void disableLog() throws IOException {
 		if (textareaOutputStream != null) {
-			textareaOutputStream.close();
-			textareaOutputStream = null;
+			textareaOutputStream.enable(false);
 		}
 		this.bottomSplitPanel.setDividerLocation(1d);
 		scrollpane.setVisible(false);

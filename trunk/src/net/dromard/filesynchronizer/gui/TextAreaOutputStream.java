@@ -8,6 +8,7 @@ import javax.swing.JTextArea;
 
 public class TextAreaOutputStream extends OutputStream {
     private JTextArea textControl;
+    private boolean enabled = true;
     
     /**
      * Creates a new instance of TextAreaOutputStream which writes
@@ -16,26 +17,34 @@ public class TextAreaOutputStream extends OutputStream {
      *                must be redirected to.
      */
     public TextAreaOutputStream(JTextArea control) {
-    	textControl = control;
-		PrintStream printer = new PrintStream(this);
-		System.setOut(printer);
+    	setControl(control);
     }
     
-    /**
+    public void setControl(JTextArea control) {
+    	textControl = control;
+    	enable(true);
+	}
+
+	/**
      * Writes the specified byte as a character to the javax.swing.JTextArea.
      * @param b The byte to be written as character to the JTextArea.
      */
     public void write( int b ) throws IOException {
-        // append the data as characters to the JTextArea control
-        textControl.append( String.valueOf( ( char )b ) );
-        textControl.setCaretPosition(textControl.getText().length() - 1);
+    	if (enabled) {
+	        // append the data as characters to the JTextArea control
+	        textControl.append( String.valueOf( ( char )b ) );
+	        textControl.setCaretPosition(textControl.getText().length() - 1);
+    	}
     }
     
-    @Override
-	public void close() throws IOException {
-    	textControl.setText("");
-    	System.setOut(System.out);
-    	System.out.println("Logs has been closed");
-		super.close();
+	public void enable(boolean enable) {
+    	this.enabled = enable;
+    	if (enable) {
+    		PrintStream printer = new PrintStream(this);
+    		System.setOut(printer);
+    	} else {
+	    	textControl.setText("");
+	    	System.setOut(System.out);
+    	}
 	}
 }
