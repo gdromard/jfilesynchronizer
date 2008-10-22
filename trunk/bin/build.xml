@@ -45,10 +45,11 @@
 		</copy>
 		<manifest mode="update" file="${src.dir}/META-INF/MANIFEST.MF">
 			<attribute name="Main-Class" value="${main.class}" />
-			<attribute name="Class-Path" value="dromard.common-1.9.jar" />
 		</manifest>
 
-	    <jar basedir="${class.dir}" jarfile="${lib.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF" />
+	    <jar basedir="${class.dir}" jarfile="${lib.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF">
+	    	<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/dromard.common-1.9.jar"/>
+	    </jar>
     </target>
 	
 	<!--+
@@ -110,8 +111,7 @@
 		+-->
 	<target name="signJar">
 		<signjar alias="dromard.key" keystore="${jnlp.dir}/dromard.cert" storepass="KeystorePassword" lazy="true">		
-			<fileset dir="${jnlp.dir}/lib" includes="dromard.*.jar"/>
-			<fileset dir="${jnlp.dir}" includes="dromard.*.jar"/>
+			<fileset dir="${lib.dir}" includes="${jar.name}-${project.version}.jar"/>
 		</signjar>
 	</target>
 
