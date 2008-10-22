@@ -4,10 +4,10 @@
 	<target name="UploadJNLP">
 	<gcupload 
 	        username="gdromard" 
-	        password="ENTER CODE HERE" 
+	        password="YOUR PASSWORD HERE" 
 	        projectname="jfilesynchronizer" 
-	        filename="jnlp/dromard.filesynchronizer-0.1.jnlp" 
-	        targetfilename="dromard.filesynchronizer-0.1.jnlp"
+	        filename="../lib/jnlp/dromard.filesynchronizer-0.1.1.jnlp" 
+	        targetfilename="dromard.filesynchronizer-0.1.1.jnlp"
 	        summary="JFileSynchronizer Java Web Start"
 	        labels="Featured, Type-Executable, OpSys-All" />
 	</target>
