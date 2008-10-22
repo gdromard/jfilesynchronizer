@@ -13,7 +13,7 @@ import net.dromard.filesynchronizer.gui.AbstractManager;
 import net.dromard.filesynchronizer.gui.ManagerListener;
 
 // Uncomment IModule to reactivate this module.
-public class JavaSourceStatisticsModule implements IModule, ManagerListener {
+public class JavaSourceStatisticsModule implements /*IModule,*/ ManagerListener {
 	public int nbFiles = 0;
 	public int nbLines = 0;
 	public int nbClasses = 0;
