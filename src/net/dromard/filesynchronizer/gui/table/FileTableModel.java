@@ -145,7 +145,9 @@ public class FileTableModel extends AbstractModel implements TableModel {
         }
         JFileSynchronizerTreeNode fileBackup  = (JFileSynchronizerTreeNode) node;
     	if (fileBackup.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
-    		rows.add(fileBackup);
+    		if (fileBackup.isLeaf()) {
+    			rows.add(fileBackup);
+    		}
     	}
     	JFileSynchronizerTreeNode child;
         for (Iterator i = fileBackup.getChilds().iterator(); i.hasNext();) {

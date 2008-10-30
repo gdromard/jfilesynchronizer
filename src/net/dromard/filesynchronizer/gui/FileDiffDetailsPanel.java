@@ -133,19 +133,19 @@ public class FileDiffDetailsPanel extends JPanel implements GuiManagerListener {
 			buff.append("<TR>");
 				buff.append("<TH align='left'>Path</TH>");
 				buff.append("<TD>");
-				if (source.exists()) buff.append(source.getAbsolutePath());
+				if (source != null && source.exists()) buff.append(source.getAbsolutePath());
 				buff.append("</TD>");
 				buff.append("<TD>");
-				if (destination.exists()) buff.append(destination.getAbsolutePath());
+				if (destination != null && destination.exists()) buff.append(destination.getAbsolutePath());
 				buff.append("</TD>");
 			buff.append("</TR>");
 			buff.append("<TR>");
 				buff.append("<TH align='left'>Length</TH>");
 				buff.append("<TD>");
-				if (source.exists()) buff.append((float)(source.length() / 1024) + " ko");
+				if (source != null && source.exists()) buff.append((float)(source.length() / 1024) + " ko");
 				buff.append("</TD>");
 				buff.append("<TD>");
-				if (destination.exists()) buff.append((float)(destination.length() / 1024) + " ko");
+				if (destination != null && destination.exists()) buff.append((float)(destination.length() / 1024) + " ko");
 				buff.append("</TD>");
 			buff.append("</TR>");
 			buff.append("<TR>");
@@ -153,13 +153,13 @@ public class FileDiffDetailsPanel extends JPanel implements GuiManagerListener {
 				buff.append("<TD>");
 				DateFormat timeFormat = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT);
 				DateFormat dateFormat = SimpleDateFormat.getDateInstance(SimpleDateFormat.SHORT);
-				if (source.exists()) {
+				if (source != null && source.exists()) {
 					Date date = new Date(source.lastModified());
 					buff.append(dateFormat.format(date) + " " + timeFormat.format(date));
 				}
 				buff.append("</TD>");
 				buff.append("<TD>");
-				if (destination.exists()) { 
+				if (destination != null && destination.exists()) { 
 					Date date = new Date(destination.lastModified());
 					buff.append(dateFormat.format(date) + " " + timeFormat.format(date));
 				}

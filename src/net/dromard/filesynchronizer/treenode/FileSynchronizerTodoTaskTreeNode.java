@@ -137,12 +137,14 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 	 * @return A character giving the compartion result (see class field for details)
 	 */
 	protected final int calculateTodoTask() {
-		if (getSynchronizationStatus() == SYNCHRONIZATION_ERROR || getSynchronizationStatus() == SYNCHRONIZATION_FILES_EQUALS || getSynchronizationStatus() == SYNCHRONIZATION_SOURCE_DELETED) {
+		if (getSynchronizationStatus() == SYNCHRONIZATION_ERROR || getSynchronizationStatus() == SYNCHRONIZATION_FILES_EQUALS) {
 			return TODO_NOTHING;
 		} else if(getSynchronizationStatus() == SYNCHRONIZATION_DESTINATION_CHANGED || getSynchronizationStatus() == SYNCHRONIZATION_SOURCE_CHANGED) {
 			return TODO_UPDATE_DESTINATION;
 		} else if(getSynchronizationStatus() == SYNCHRONIZATION_SOURCE_ADDED) {
 			return TODO_CREATE_DESTINATION;
+		} else if(getSynchronizationStatus() == SYNCHRONIZATION_SOURCE_DELETED) {
+			return TODO_CREATE_SOURCE;
 		}
 		List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
 		for (IModule module : modules) {

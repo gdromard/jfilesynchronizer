@@ -106,7 +106,7 @@ public class FileSynchronizerVisitor implements Visitor {
      */
     public final void visit(final Object node) throws Exception {
     	// Stop visiting if running has been flagged to false.
-    	if (!abort) return;
+    	if (abort) return;
     	
         if (!(node instanceof FileSynchronizerTodoTaskTreeNode)) {
             throw new ClassCastException("FileSynchronizerTodoTaskTreeNode expected");

@@ -5,6 +5,7 @@ import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTre
 import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode.SYNCHRONIZATION_SOURCE_CHANGED;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode.SYNCHRONIZATION_SOURCE_DELETED;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_CREATE_DESTINATION;
+import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_CREATE_SOURCE;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_DELETE_DESTINATION;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_DELETE_SOURCE;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_NOTHING;
@@ -118,7 +119,7 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
         	possibleTask.add(possibleTask.size(), TODO_UPDATE_DESTINATION);
         	possibleTask.add(possibleTask.size(), TODO_UPDATE_SOURCE);
         } else if (synchronizationStatus == SYNCHRONIZATION_SOURCE_DELETED) {
-        	possibleTask.add(possibleTask.size(), TODO_DELETE_SOURCE);
+        	possibleTask.add(possibleTask.size(), TODO_CREATE_SOURCE);
         	possibleTask.add(possibleTask.size(), TODO_DELETE_DESTINATION);
         } else if (synchronizationStatus == SYNCHRONIZATION_SOURCE_ADDED) {
         	possibleTask.add(possibleTask.size(), TODO_DELETE_SOURCE);
@@ -163,7 +164,7 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
     	if (getSelectedElements().size() > 0) {
     		fireElementsSelected();
     	}
-        if (event.isPopupTrigger()) {
+        if (event.getButton() == MouseEvent.BUTTON3) {
         	JPopupMenu popup = createPopupMenu();
             popup.setInvoker(event.getComponent());
             Point invokerOrigin = event.getComponent().getLocationOnScreen();

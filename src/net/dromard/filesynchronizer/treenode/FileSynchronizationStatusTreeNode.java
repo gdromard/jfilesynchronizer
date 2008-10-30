@@ -11,7 +11,7 @@ import net.dromard.filesynchronizer.modules.ModuleManager;
  * This is a node that add the capability to compare file source with destination.
  * @author Pingus
  */
-public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode {
+public abstract class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode {
 	/**
 	 * Human representation of file compare result.
 	 */
@@ -73,15 +73,6 @@ public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode 
         super(source, destination);
     }
 
-    /**
-     * Add a child. Construct the node (Used by childs class)
-     * @param source      The source file.
-     * @param destination The destination file.
-     */
-	protected void addChild(final File source, final File destination) {
-		addChild(new FileSynchronizationStatusTreeNode(source, destination));
-	}
-
 	/**
 	 * Set Synchronization error message.
 	 * @param error The error message to be set.
@@ -106,7 +97,7 @@ public class FileSynchronizationStatusTreeNode extends FileSynchronizerTreeNode 
 	 */
 	private final int synchronize() {
 		int synchronizeStatus = SYNCHRONIZATION_ERROR;
-		
+
 		if ((getSource() == null || !getSource().exists()) && (getDestination() == null || !getDestination().exists())) {
 			synchronizeStatus = SYNCHRONIZATION_FILES_EQUALS;
 		} else if (getSource() == null && getDestination() != null && getDestination().exists()) {
