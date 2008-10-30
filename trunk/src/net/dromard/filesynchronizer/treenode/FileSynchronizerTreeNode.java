@@ -7,7 +7,7 @@ import java.util.HashMap;
 import net.dromard.common.visitable.Visitable;
 import net.dromard.common.visitable.Visitor;
 
-public class FileSynchronizerTreeNode implements Visitable {
+public abstract class FileSynchronizerTreeNode implements Visitable {
 	/** Parent TreeNode. */
 	private FileSynchronizerTreeNode parent = null;
 	/** Name. */
@@ -56,8 +56,7 @@ public class FileSynchronizerTreeNode implements Visitable {
      * @return If this node is a leaf (if it does not contain any child)
      */
     public final boolean isLeaf() {
-        return (getChilds() == null || getChilds().size() == 0) 
-        	&& (getSource() != null && getSource().isFile());
+        return getChilds().size() == 0 && ((getSource() != null && getSource().isFile()) || (getDestination() != null && getDestination().isFile()));
     }
 
     /**
@@ -65,9 +64,7 @@ public class FileSynchronizerTreeNode implements Visitable {
      * @param source      The source file.
      * @param destination The destination file.
      */
-	protected void addChild(File source, File destination) {
-		addChild(new FileSynchronizerTreeNode(source, destination));
-	}
+	protected abstract void addChild(File source, File destination);
 
     /**
      * Retreive the childs.

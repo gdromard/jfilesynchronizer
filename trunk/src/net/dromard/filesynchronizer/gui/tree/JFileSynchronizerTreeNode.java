@@ -20,4 +20,5 @@ public class JFileSynchronizerTreeNode extends FileSynchronizerTodoTaskTreeNode 
 			addChild(child);
 		}
 	}
+
 }
