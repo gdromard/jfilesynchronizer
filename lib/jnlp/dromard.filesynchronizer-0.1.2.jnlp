@@ -7,6 +7,10 @@
 		<description>dromard.filesynchronizer</description>
 		<offline-allowed/>
 	</information>
+	<shortcut online="false">
+      <desktop/>
+      <menu/>
+    </shortcut>
 	<security>
 		<all-permissions/>
 	</security>
