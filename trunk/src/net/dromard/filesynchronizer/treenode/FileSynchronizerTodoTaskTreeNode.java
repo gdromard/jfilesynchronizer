@@ -38,17 +38,17 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
 	public static final int TODO_ERROR = 0;
 
 	/**
-	 * [<] Used when the destination file has been modified outside. (is newer than the master)
+	 * [<] Used when the source file has been modified outside. (is older than the backup)
 	 */
 	public static final int TODO_UPDATE_SOURCE = 1;
 
 	/**
-	 * [-] Used when a destination file has to be deleted (it no more exists in source).
+	 * [-] Used when a source file has to be deleted (it no more exists in destination).
 	 */
 	public static final int TODO_DELETE_SOURCE = 2;
 
 	/**
-	 * [+] Used when the destination file has to be created (it does not exist).
+	 * [+] Used when the source file has to be created (it does not exist in destination - must never happen).
 	 */
 	public static final int TODO_CREATE_SOURCE = 3;
 
