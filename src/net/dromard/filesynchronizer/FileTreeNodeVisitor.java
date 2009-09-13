@@ -9,7 +9,7 @@ import net.dromard.filesynchronizer.gui.table.FileTableModel;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTreeNode;
 
-/**
+/*
  * 
  * @author Pingus
  */
@@ -35,9 +35,11 @@ public class FileTreeNodeVisitor implements Visitor {
         running = false;
     }
 
-    private final void visit(FileSynchronizerTreeNode node) throws Exception {
+    private final void visit(FileSynchronizerTodoTaskTreeNode node) throws Exception {
         if (running) {
-            model.add(node);
+            if (node.isLeaf() && node.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
+                model.add(node);
+            }
 
             HashMap<String, File> destinationFiles = new HashMap<String, File>();
             if (node.getDestination() != null) {
@@ -54,7 +56,7 @@ public class FileTreeNodeVisitor implements Visitor {
                 if (tmp != null && tmp.length > 0) {
                     for (int i = 0; i < tmp.length; ++i) {
                         File dest = destinationFiles.get(tmp[i].getName());
-                        child = node.addChild(tmp[i], dest);
+                        child = node.createNode(tmp[i], dest);
                         if (dest != null) {
                             destinationFiles.remove(tmp[i].getName());
                         }
@@ -63,7 +65,7 @@ public class FileTreeNodeVisitor implements Visitor {
                         }
                     }
                     for (String key : destinationFiles.keySet()) {
-                        child = node.addChild(null, destinationFiles.get(key));
+                        child = node.createNode(null, destinationFiles.get(key));
                         if (child != null) {
                             child.accept(this);
                         }
@@ -71,7 +73,7 @@ public class FileTreeNodeVisitor implements Visitor {
                 }
             } else {
                 for (String key : destinationFiles.keySet()) {
-                    child = node.addChild(null, destinationFiles.get(key));
+                    child = node.createNode(null, destinationFiles.get(key));
                     if (child != null) {
                         child.accept(this);
                     }

@@ -9,11 +9,10 @@ import java.util.Map;
 import net.dromard.filesynchronizer.modules.IModule;
 import net.dromard.filesynchronizer.modules.ModuleManager;
 
-/**
- * File Synchronizer Todo Status Tree Node object.
- * This is a node that add the capability to flag a todo task depending on synchronization status.
- * This implementation act by default as a backuper. 
+/*
+ * File Synchronizer Todo Status Tree Node object. This is a node that add the capability to flag a todo task depending on synchronization status. This implementation act by default as a backuper.
  * (their is - by default - no modification of sources files and no deletion of destination files)
+ * 
  * @author Pingus
  */
 public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusTreeNode {
@@ -28,12 +27,12 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
     public static Map<Integer, String> TODO_TASKS_NAMES = new HashMap<Integer, String>();
 
     /**
-     * Force recalculation of synchronization (comparaison).
+     * Force recalculation of synchronization (comparison).
      */
     public static final int TODO_RESET = -1;
 
     /**
-     * [?] Can occured if the files modification dates are equals but the files
+     * [?] Can occurred if the files modification dates are equals but the files
      * length are different.
      */
     public static final int TODO_ERROR = 0;
@@ -89,7 +88,7 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
         TODO_TASKS_NAMES.put(TODO_NOTHING, "Do nothing");
     };
 
-	/* -------------------------------------------------------------------------------- */
+    /* -------------------------------------------------------------------------------- */
 
     /**
      * Todo task. (the task to do depending on synchronization status)
@@ -111,12 +110,12 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
     }
 
     /**
-     * Add a child. Construct the node (Used by childs class)
+     * Construct a node.
      * @param source      The source file.
      * @param destination The destination file.
      */
-    public FileSynchronizerTreeNode addChild(final File source, final File destination) {
-        return addChild(new FileSynchronizerTodoTaskTreeNode(source, destination));
+    public FileSynchronizerTreeNode createNode(final File source, final File destination) {
+        return new FileSynchronizerTodoTaskTreeNode(source, destination);
     }
 
     /**
@@ -164,8 +163,7 @@ public class FileSynchronizerTodoTaskTreeNode extends FileSynchronizationStatusT
     }
 
     /**
-     * Retreive todo task.
-     * 
+     * Retrieve todo task.
      * @return The todo task
      */
     public final int getTodoTask() {

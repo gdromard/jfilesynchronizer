@@ -16,10 +16,10 @@ public class JFileSynchronizerTreeNode extends FileSynchronizerTodoTaskTreeNode 
         super(source, destination);
     }
 
-    public FileSynchronizerTreeNode addChild(File source, File destination) {
+    public FileSynchronizerTreeNode createNode(File source, File destination) {
         JFileSynchronizerTreeNode child = new JFileSynchronizerTreeNode(source, destination);
         if (!child.isLeaf() || child.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
-            return addChild(child);
+            return child;
         }
         return null;
     }

@@ -1,8 +1,9 @@
 package net.dromard.filesynchronizer.modules;
 
 import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode.SYNCHRONIZATION_FILES_EQUALS;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_NOTHING;
 import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_ERROR;
+import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_NOTHING;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -11,55 +12,55 @@ import net.dromard.filesynchronizer.gui.MainFrame;
 
 // Uncomment IModule to reactivate this module.
 public class ProgressDetailsModule implements IModule {
-	public int nbFiles = 0;
-	public int nbFilesToBackup = 0;
-	private int nbBackedupFiles = 0;
-	
-	public ProgressDetailsModule() {
-		System.out.println("Loading module " + this.getClass().getSimpleName());
-	}
-	
-	public char[] retrieveTodoTasks() {
-		return new char[] { };
-	}
+    public int nbFiles = 0;
+    public int nbFilesToBackup = 0;
+    private int nbBackedupFiles = 0;
 
-	public String[] retrieveTodoTaskNames() {
-		return new String[] { };
-	}
+    public ProgressDetailsModule() {
+        System.out.println("Loading module " + this.getClass().getSimpleName());
+    }
 
-	public void addImageTypes(final Map<Integer, String> imageTypeByTodoTask) {
-	}
+    public char[] retrieveTodoTasks() {
+        return new char[] {};
+    }
 
-	public int synchronize(final int currentStatus, final File source, final File destination) {
-		if (currentStatus != SYNCHRONIZATION_FILES_EQUALS) {
-			++nbFilesToBackup;
-		}
-		++nbFiles;
-		MainFrame.getInstance().getProgressBarHandler().setInfo(nbFilesToBackup + "/" +nbFiles + " " + (source!=null?source.getName():destination.getName()));
-		return currentStatus;
-	}
+    public String[] retrieveTodoTaskNames() {
+        return new String[] {};
+    }
 
-	public int doTask(int todoTask, File source, File destination) {
-		if (todoTask != TODO_NOTHING && todoTask != TODO_ERROR) {
-			++nbBackedupFiles ;
-		}
-		MainFrame.getInstance().getProgressBarHandler().setInfo(nbBackedupFiles + "/" +nbFilesToBackup + " " + (source!=null?source.getName():destination.getName()));
-		return todoTask;
-	}
+    public void addImageTypes(final Map<Integer, String> imageTypeByTodoTask) {
+    }
 
-	public int calculateTodoTask(int synchronizationStatus) {
-		throw new RuntimeException("I do not know this synchronisation status: " + synchronizationStatus + ", please use knows() methods before.");
-	}
+    public int synchronize(final int currentStatus, final File source, final File destination) {
+        if (currentStatus != SYNCHRONIZATION_FILES_EQUALS) {
+            ++nbFilesToBackup;
+        }
+        ++nbFiles;
+        MainFrame.getInstance().getProgressBarHandler().setInfo(nbFilesToBackup + "/" + nbFiles + " " + (source != null ? source.getName() : destination.getName()));
+        return currentStatus;
+    }
 
-	public boolean knowsSynchronizationStatus(int synchronizationStatus) {
-		return false;
-	}
+    public int doTask(int todoTask, File source, File destination) {
+        if (todoTask != TODO_NOTHING && todoTask != TODO_ERROR) {
+            ++nbBackedupFiles;
+        }
+        MainFrame.getInstance().getProgressBarHandler().setInfo(nbBackedupFiles + "/" + nbFilesToBackup + " " + (source != null ? source.getName() : destination.getName()));
+        return todoTask;
+    }
 
-	public boolean knowsTodoTask(int todoTask) {
-		return false;
-	}
+    public int calculateTodoTask(int synchronizationStatus) {
+        throw new RuntimeException("I do not know this synchronisation status: " + synchronizationStatus + ", please use knows() methods before.");
+    }
 
-	public List<Integer> getPossibleTasks(int synchronizationStatus) {
-		return null;
-	}
+    public boolean knowsSynchronizationStatus(int synchronizationStatus) {
+        return false;
+    }
+
+    public boolean knowsTodoTask(int todoTask) {
+        return true;
+    }
+
+    public List<Integer> getPossibleTasks(int synchronizationStatus) {
+        return null;
+    }
 }

@@ -1,19 +1,19 @@
 package net.dromard.filesynchronizer.gui;
 
-import net.dromard.filesynchronizer.gui.tree.JFileSynchronizerTreeNode;
+import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 
 public abstract class AbstractModel {
-	private JFileSynchronizerTreeNode root = null;
-	
-	public AbstractModel(final JFileSynchronizerTreeNode root) {
-		setRootNode(root);
-	}
-	
-	public void setRootNode(final JFileSynchronizerTreeNode root) {
-		this.root = root;
-	}
+    private FileSynchronizerTodoTaskTreeNode root = null;
 
-	public JFileSynchronizerTreeNode getRootNode() {
-		return root;
-	}
+    public AbstractModel(final FileSynchronizerTodoTaskTreeNode root) {
+        setRootNode(root);
+    }
+
+    public void setRootNode(final FileSynchronizerTodoTaskTreeNode root) {
+        this.root = root;
+    }
+
+    public FileSynchronizerTodoTaskTreeNode getRootNode() {
+        return root;
+    }
 }

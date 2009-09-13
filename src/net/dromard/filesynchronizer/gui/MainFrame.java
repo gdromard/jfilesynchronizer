@@ -25,13 +25,11 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
 import net.dromard.filesynchronizer.gui.table.FileTableManager;
-import net.dromard.filesynchronizer.gui.tree.FileTreeManager;
 import net.dromard.filesynchronizer.modules.ModuleManager;
 
 public class MainFrame extends JFrame implements ActionListener, ManagerListener {
@@ -44,7 +42,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     private static MainFrame mainFrame;
     private ProgressBarHandler progress = new ProgressBarHandler(this);
     private AbstractManager tableManager;
-    private AbstractManager treeManager;
+    // private AbstractManager treeManager;
 
     private File source = null;
     private File destination = null;
@@ -95,10 +93,11 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         return tableManager;
     }
 
+/*
     private AbstractManager getTreeManager() {
         return treeManager;
     }
-
+*/
     public void init() {
         this.setTitle("File Synchronizer");
         getContentPane().setLayout(new BorderLayout());
@@ -116,6 +115,12 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
         tableScrollPane.setOpaque(false);
         tabbedPane.addTab("Table View", tableScrollPane);
+
+        FileDiffDetailsPanel filesDetails = new FileDiffDetailsPanel();
+        tableManager.addListener(filesDetails);
+        tabbedPane.addTab("Details", filesDetails);
+
+/*        
         // Tree Manager
         JTree tree = new JTree();
         treeManager = new FileTreeManager(tree);
@@ -136,7 +141,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         leftSplitPanel.setBackground(Color.WHITE);
         leftSplitPanel.setDividerLocation(240);
         tabbedPane.addTab("Tree View", leftSplitPanel);
-
+*/
         bottomSplitPanel = new JSplitPane();
         bottomSplitPanel.setTopComponent(tabbedPane);
         control = new JTextArea();
@@ -264,13 +269,11 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     public void synchronizeStopped(final AbstractManager initiator) {
         System.out.println("Synchronization stopped at " + new Date());
         progress.progress("Stopping synchronization process");
+        progress.stop();
     }
 
     public void synchronizeFinished(final AbstractManager initiator) {
         System.out.println("Synchronize Finished at " + new Date());
-        if (initiator == getTableManager()) {
-            getTreeManager().setModelToComponent(getTableManager().getAbstractModel().getRootNode());
-        }
         progress.stop();
     }
 
@@ -282,6 +285,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     public void processStopped(final AbstractManager initiator) {
         System.out.println("Processing stopped at " + new Date());
         progress.progress("Stopping process");
+        progress.stop();
     }
 
     public void processFinished(final AbstractManager initiator) {
