@@ -2,7 +2,6 @@ package net.dromard.filesynchronizer.gui.table;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.event.TableModelListener;
@@ -11,32 +10,21 @@ import javax.swing.table.TableModel;
 import net.dromard.common.io.FileHelper;
 import net.dromard.filesynchronizer.gui.AbstractModel;
 import net.dromard.filesynchronizer.gui.IconManager;
-import net.dromard.filesynchronizer.gui.tree.JFileSynchronizerTreeNode;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTreeNode;
 
 public class FileTableModel extends AbstractModel implements TableModel {
     private List<TableModelListener> tableModelListeners = new ArrayList<TableModelListener>();
-    private Vector<JFileSynchronizerTreeNode> rows = new Vector<JFileSynchronizerTreeNode>();
     private Class[] columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class };
     private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status" };
-	//private Class[]  columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class, Double.class, Double.class, Double.class, Double.class*/ };
-	//private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status", "Source length (ko)", "Destination length (ko)", "Source timestamp", "Destination timestamp" };
 
-    public FileTableModel(final JFileSynchronizerTreeNode root) {
+    // private Class[] columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class, Double.class, Double.class, Double.class, Double.class*/ };
+    // private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status", "Source length (ko)", "Destination length (ko)", "Source timestamp",
+    // "Destination timestamp" };
+
+    public FileTableModel(final FileSynchronizerTodoTaskTreeNode root) {
         super(root);
         setRootNode(root);
-    }
-
-    public void setRootNode(final JFileSynchronizerTreeNode root) {
-        try {
-            if (root != null && root != getRootNode()) {
-                rows = new Vector<JFileSynchronizerTreeNode>();
-            }
-            super.setRootNode(root);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void addTableModelListener(final TableModelListener tableModelListener) {
@@ -60,15 +48,15 @@ public class FileTableModel extends AbstractModel implements TableModel {
     }
 
     public int getRowCount() {
-        return rows.size();
+        return (getRootNode() != null) ? getRootNode().getChilds().size() : 0;
     }
 
-    public JFileSynchronizerTreeNode getNode(final int rowIndex) {
-        return rows.get(rowIndex);
+    public FileSynchronizerTodoTaskTreeNode getNode(final int rowIndex) {
+        return (FileSynchronizerTodoTaskTreeNode) getRootNode().getChilds().get(rowIndex);
     }
 
     public Object getValueAt(final int rowIndex, final int columnIndex) {
-        JFileSynchronizerTreeNode node = rows.get(rowIndex);
+        FileSynchronizerTodoTaskTreeNode node = getNode(rowIndex);
         if (columnIndex == 0) {
             return IconManager.getIcon(null, node.getTodoTask(), node);
         } else if (columnIndex == 1) {
@@ -135,11 +123,15 @@ public class FileTableModel extends AbstractModel implements TableModel {
     }
 
     public void add(FileSynchronizerTreeNode node) {
-        JFileSynchronizerTreeNode j = (JFileSynchronizerTreeNode) node;
-        if (j.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
-            if (j.isLeaf()) {
-                rows.add(j);
-            }
+        FileSynchronizerTodoTaskTreeNode j = (FileSynchronizerTodoTaskTreeNode) node;
+        if (j.isLeaf() && j.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
+            getRootNode().addChild(j);
+        }
+    }
+
+    private void fireTableChanged() {
+        for (TableModelListener listener : tableModelListeners) {
+            listener.tableChanged(null);
         }
     }
 }

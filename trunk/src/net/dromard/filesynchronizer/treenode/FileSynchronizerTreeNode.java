@@ -1,8 +1,8 @@
 package net.dromard.filesynchronizer.treenode;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 
 import net.dromard.common.visitable.Visitable;
 import net.dromard.common.visitable.Visitor;
@@ -19,7 +19,7 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
     /** Absolute source path. */
     private String absoluteSourcePath = null;
     /** Node childs. */
-    private ArrayList<FileSynchronizerTreeNode> childs = new ArrayList<FileSynchronizerTreeNode>();
+    private List<FileSynchronizerTreeNode> childs = new Vector<FileSynchronizerTreeNode>();
     /** Node attached object. */
     private File source = null;
     /** Node attached object. */
@@ -78,13 +78,22 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
      * @param source The source file.
      * @param destination The destination file.
      */
-    public abstract FileSynchronizerTreeNode addChild(File source, File destination);
+    public final FileSynchronizerTreeNode addChild(File source, File destination) {
+        return addChild(createNode(source, destination));
+    }
+
+    /**
+     * Construct a node.
+     * @param source The source file.
+     * @param destination The destination file.
+     */
+    public abstract FileSynchronizerTreeNode createNode(File source, File destination);
 
     /**
      * Retreive the childs.
      * @return the childs
      */
-    public final ArrayList<FileSynchronizerTreeNode> getChilds() {
+    public final List<FileSynchronizerTreeNode> getChilds() {
         return childs;
     }
 
@@ -107,7 +116,17 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
      */
     public final String getRelativePath() {
         if (relativePath == null) {
-            relativePath = (getParent() != null ? getParent().getRelativePath() : ".") + File.separator + getName();
+            if (getParent() != null) {
+                File parent = getParent().getSource();
+                if (parent != null && source != null) {
+                    relativePath = source.getAbsolutePath().substring(parent.getAbsolutePath().length());
+                } else {
+                    parent = getParent().getDestination();
+                    relativePath = destination.getAbsolutePath().substring(parent.getAbsolutePath().length());
+                }
+            } else {
+                relativePath = "";
+            }
         }
         return relativePath;
     }
@@ -120,7 +139,7 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
             if (getParent() == null || getSource() != null) {
                 absoluteSourcePath = getSource().getAbsolutePath();
             } else {
-                absoluteSourcePath = getParent().getSourceAbsolutePath() + File.separator + getName();
+                absoluteSourcePath = getParent().getSourceAbsolutePath() + File.separator + getRelativePath();
             }
         }
         return absoluteSourcePath;
@@ -134,7 +153,7 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
             if (getParent() == null || getDestination() != null) {
                 absoluteDestinationPath = getDestination().getAbsolutePath();
             } else {
-                absoluteDestinationPath = getParent().getDestinationAbsolutePath() + File.separator + getName();
+                absoluteDestinationPath = getParent().getDestinationAbsolutePath() + File.separator + getRelativePath();
             }
         }
         return absoluteDestinationPath;
@@ -209,9 +228,11 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
      * Add a child to node.
      * @param child The node child element to be added.
      */
-    protected final FileSynchronizerTreeNode addChild(final FileSynchronizerTreeNode child) {
-        child.setParent(this);
-        this.childs.add(child);
+    public final FileSynchronizerTreeNode addChild(final FileSynchronizerTreeNode child) {
+        if (child != null) {
+            child.setParent(this);
+            this.childs.add(child);
+        }
         return child;
     }
 
@@ -222,8 +243,5 @@ public abstract class FileSynchronizerTreeNode implements Visitable {
      */
     public final void accept(final Visitor visitor) throws Exception {
         visitor.visit(this);
-        for (Iterator<FileSynchronizerTreeNode> i = getChilds().iterator(); i.hasNext();) {
-            i.next().accept(visitor);
-        }
     }
 }

@@ -17,7 +17,8 @@ public final class ProgressBarHandler {
     private final MyInfinityPanel progress = new MyInfinityPanel();
     private JFrame application;
     private boolean running = false;
-    private int size = 0;
+
+    // private int size = 0;
 
     public ProgressBarHandler(final JFrame application) {
         this.application = application;
@@ -25,10 +26,11 @@ public final class ProgressBarHandler {
         progress.setFont(SwingPropertiesHelper.asFont("Century Gothic-BOLD-15"));
     }
 
+/*
     public void setSize(int size) {
         this.size = size;
     }
-
+*/
     public void progress(final String action) {
         if (!running) {
             running = true;
@@ -49,6 +51,8 @@ public final class ProgressBarHandler {
         progress.interrupt();
         application.remove(progress);
         application.repaint();
+        progress.setText(null);
+        progress.setInfo(null);
         running = false;
     }
 
