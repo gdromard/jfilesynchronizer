@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="Compil" name="FileSynchronizer" basedir=".">
+	<!--+
+		| Initial properties
+		+-->
+	<property file="project.properties" />
+	
+	<!--+
+		| Classpath
+		+-->
+	<path id="classpath">
+		<fileset dir="${lib.dir}"><include name="*.jar"/></fileset>
+	</path>
+	
+	<!--+
+		| Clean target
+		+-->
+	<target name="Clean">
+		<delete dir="${class.dir}"/>
+		<delete dir="${javadoc.dir}"/>
+		<delete dir="${src.dir}/META-INF"/>
+		<delete file="${lib.dir}/${jar.name}-${project.version}.jar"/>
+		<delete file="${home.dir}/${zip.name}-${project.version}.jar"/>
+	</target>
+	
+	<!--+
+		| Build target
+		+-->
+	<target name="Build" depends="Clean, MakeJar"></target>
+	
+	<!--+
+		| Build target
+		+-->
+	<target name="MakeJar" depends="Compil">
+		<echo>CLASSPATH: ${classpath}</echo>
+		<echo>LIB DIR: ${lib.dir}</echo>
+		
+		<mkdir dir="${lib.dir}"/>
+		<mkdir dir="${class.dir}"/>
+		<mkdir dir="${src.dir}/META-INF"/>
+		<copy todir="${class.dir}">
+			<fileset dir="${src.dir}">
+				<exclude name="**/*.java"/>
+			</fileset>
+		</copy>
+		<manifest mode="update" file="${src.dir}/META-INF/MANIFEST.MF">
+			<attribute name="Main-Class" value="${main.class}" />
+		</manifest>
+
+	    <jar basedir="${class.dir}" jarfile="${lib.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF">
+	    	<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/dromard.common-1.9.jar"/>
+	    </jar>
+    </target>
+	
+	<!--+
+		| Compilation target
+		+-->
+	<target name="Compil">
+		<fixcrlf includes="${src.dir}/${project.package}/**/*.java" 	srcdir="${src.dir}" tab="add" tablength="4"/>
+		<fixcrlf includes="${src.dir}/${project.package}/*.java" 		srcdir="${src.dir}" tab="add" tablength="4"/>
+		<fixcrlf includes="${main.class}.java" 							srcdir="${src.dir}" tab="add" tablength="4"/>
+		<mkdir dir="${class.dir}"/>
+		<javac debug="${build.debug}" destdir="${class.dir}" listfiles="true" optimize="${build.optimize}" srcdir="${src.dir}" verbose="${build.verbose}">
+			<classpath refid="classpath"/>
+			<include name="${project.package}/**/*.java"/>
+			<include name="${project.package}/*.java"/>
+			<include name="${main.class}.java"/>
+		</javac>
+    </target>
+	
+	<!--+
+		| JavaDoc target
+		+-->
+	<target name="JavaDoc">
+		<mkdir dir="${javadoc.dir}"/>
+		<javadoc access="protected" author="true" destdir="${javadoc.dir}" use="true" version="true" windowtitle="${project.name} API">
+			<classpath refid="classpath"/>
+			<fileset defaultexcludes="yes" dir="${src.dir}">
+				<include name="${project.package}/**/*.java"/>
+				<include name="${project.package}/*.java"/>
+				<include name="${main.class}/*.java"/>
+			</fileset>
+			<header><![CDATA[<h3>${project.name} API v${project.version}</h3>]]></header>
+			<tag description="To do:" name="todo" scope="all"/>
+		</javadoc>
+	</target>
+	
+	<!--+
+		| Execution target
+		+-->
+	<target name="Execute" depends="Compil">
+		<java classname="${main.class}">
+		<classpath refid="classpath"/>
+		</java>
+	</target>
+	
+	<!--+
+		| Make Zip target
+		| This target make a snapshot of your project into a zip file
+		+-->
+    <target name="MakeZip" depends="MakeJar">
+        <!-- Putting lib content -->
+        <zip destfile="${home.dir}/${zip.name}-${project.version}.zip">
+            <zipfileset dir="${home.dir}" includes="*.*" exludes="${zip.name}-*.zip" prefix="${zip.name}-${project.version}/"/>
+        </zip>
+    </target>
+
+	<!--+
+		| Publish on Web Server
+		|   + Java Web Start
+		+-->
+	<target name="signJar">
+		<signjar alias="dromard.key" keystore="${jnlp.dir}/dromard.cert" storepass="KeystorePassword" lazy="true">		
+			<fileset dir="${lib.dir}" includes="${jar.name}-${project.version}.jar"/>
+		</signjar>
+	</target>
+
+	<!--+
+		| Publish on Web Server
+		|   + Java Web Start
+		+-->
+	<target name="publish">
+		<!-- Structure creation -->
+		<mkdir dir="${jnlp.dir}"/>
+		<mkdir dir="${jnlp.dir}/doc"/>
+		<mkdir dir="${jnlp.dir}/lib"/>
+		<!-- Resources -->
+		<copy todir="${jnlp.dir}/lib" overwrite="true"><fileset dir="${lib.dir}" includes="*.jar"/></copy>
+		<copy todir="${jnlp.dir}/" overwrite="true"><fileset dir="${lib.dir}" includes="${jar.name}-${project.version}.jar"/></copy>
+		<copy todir="${jnlp.dir}/" overwrite="true"><fileset dir="${bin.dir}/jnlp" includes="index.*"/></copy>
+		<signjar alias="Pingus.key" keystore="${jnlp.dir}/Pingus.cert" storepass="KeystorePassword" lazy="true">		
+			<fileset dir="${jnlp.dir}/lib" includes="dromard.*.jar"/>
+			<fileset dir="${jnlp.dir}" includes="dromard.*.jar"/>
+		</signjar>
+	</target>
+	
+	<!--+
+		| JNLP
+		| Java Web Start
+		+-->
+	<taskdef name="jnlp" classname="net.dromard.common.ant.JNLPTask" classpathref="classpath" />
+	
+	<target name="jnlp">
+		<!-- JNLP for JVM 1.5.x -->
+		<mkdir dir="${jnlp.dir}"/>
+		<jnlp spec="1.0+" 
+			version="0.1" 
+			description="${project.short.name}"
+			codebase="${codebase}" 
+			href="${project.short.name}.jnlp" 
+			tofile="${jnlp.dir}/${project.short.name}.jnlp">
+			<information>
+				<title value="${project.short.name}"/>
+			    <vendor value="${project.vendor}"/> 
+			    <homepage href="${homepage}"/>
+			    <description value="${project.short.name}"/>
+				<offline_allowed/>
+			</information>
+			<security>
+			   	<all_permissions/>
+			</security>
+			<resources>
+				<j2se version="1.5+" href="http://java.sun.com/products/autodl/j2se"/>
+				<jar href="${jar.name}-${project.version}.jar"/>
+				<jar href="lib/${jar.common.name}-${jar.common.version}.jar"/>
+			</resources>
+			<application_desc main_class="${main.class}" />
+			<!-- <association extensions="aaa" mime-type="x-application/aaa"/> -->
+		</jnlp>
+	</target>
+</project>

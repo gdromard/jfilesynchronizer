@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="UploadJNLP" name="FileSynchronizer" basedir=".">
+	<taskdef classname="net.bluecow.googlecode.ant.GoogleCodeUploadTask" classpath="jnlp/lib//ant-googlecode-0.0.1.jar" name="gcupload"/>
+	<target name="UploadJNLP">
+	<gcupload 
+	        username="gdromard" 
+	        password="YOUR PASSWORD HERE" 
+	        projectname="jfilesynchronizer" 
+	        filename="../lib/jnlp/dromard.filesynchronizer-0.1.2.jnlp" 
+	        targetfilename="dromard.filesynchronizer-0.1.2.jnlp"
+	        summary="JFileSynchronizer Java Web Start"
+	        labels="Featured, Type-Executable, OpSys-All" />
+	</target>
+</project>

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<jnlp spec="1.0+" version="0.1" codebase="http://jfilesynchronizer.googlecode.com/svn/trunk/lib/jnlp" href="dromard.filesynchronizer-0.1.1.jnlp">
+	<information>
+		<title>dromard.filesynchronizer</title>
+		<vendor>Gabriel DROMARD</vendor>
+		<homepage href="http://jfilesynchronizer.googlecode.com"/>
+		<description>dromard.filesynchronizer</description>
+		<offline-allowed/>
+	</information>
+	<security>
+		<all-permissions/>
+	</security>
+	<resources>
+		<j2se version="1.5+" href="http://java.sun.com/products/autodl/j2se"/>
+		<jar href="../dromard.filesynchronizer-0.1.1.jar"/>
+	</resources>
+	<application-desc main-class="FileSynchronizer"/>
+</jnlp>
