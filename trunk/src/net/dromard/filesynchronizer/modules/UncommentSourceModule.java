@@ -24,7 +24,7 @@ import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 public class UncommentSourceModule /*implements IModule*/ {
 	
 	/**
-	 * [/] Used when the source file contains lines tha begin with //.
+	 * [/] Used when the source file contains lines that begin with //.
 	 */
 	public static int SYNCHRONIZATION_CONTAINS_COMMENTS;
 	
