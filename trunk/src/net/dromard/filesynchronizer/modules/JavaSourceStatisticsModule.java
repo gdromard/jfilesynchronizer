@@ -1,7 +1,5 @@
 package net.dromard.filesynchronizer.modules;
 
-import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode.SYNCHRONIZATION_FILES_EQUALS;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,107 +9,115 @@ import java.util.Map;
 
 import net.dromard.filesynchronizer.gui.AbstractManager;
 import net.dromard.filesynchronizer.gui.ManagerListener;
+import net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode;
 
 // Uncomment IModule to reactivate this module.
 public class JavaSourceStatisticsModule implements /*IModule,*/ ManagerListener {
-	public int nbFiles = 0;
-	public int nbLines = 0;
-	public int nbClasses = 0;
-	public int nbInterfaces = 0;
-	
-	public JavaSourceStatisticsModule() {
-		System.out.println("Loading module " + this.getClass().getSimpleName());
-	}
-	
-	public char[] retrieveTodoTasks() {
-		return new char[] { };
-	}
+    public int nbFiles = 0;
+    public int nbLines = 0;
+    public int nbClasses = 0;
+    public int nbTest = 0;
+    public int nbInterfaces = 0;
 
-	public String[] retrieveTodoTaskNames() {
-		return new String[] { };
-	}
+    public JavaSourceStatisticsModule() {
+        System.out.println("Loading module " + this.getClass().getSimpleName());
+    }
 
-	public void addImageTypes(final Map<Integer, String> imageTypeByTodoTask) {
-	}
+    public char[] retrieveTodoTasks() {
+        return new char[]{};
+    }
 
-	public int synchronize(final int currentStatus, final File source, final File destination) {
-		if (currentStatus == SYNCHRONIZATION_FILES_EQUALS) {
-			getStats(source);
-		}
-		return currentStatus;
-	}
+    public String[] retrieveTodoTaskNames() {
+        return new String[]{};
+    }
 
-	public int doTask(int todoTask, File source, File destination) {
-		return todoTask;
-	}
+    public void addImageTypes(final Map<Integer, String> imageTypeByTodoTask) {
+    }
 
-	public int calculateTodoTask(int synchronizationStatus) {
-		throw new RuntimeException("I do not know this synchronisation status: " + synchronizationStatus + ", please use knows() methods before.");
-	}
+    public int synchronize(final int currentStatus, final File source, final File destination) {
+        if (currentStatus == FileSynchronizationStatusTreeNode.SYNCHRONIZATION_FILES_EQUALS) {
+            getStats(source);
+        }
+        return currentStatus;
+    }
 
-	public boolean knowsSynchronizationStatus(int synchronizationStatus) {
-		return false;
-	}
+    public int doTask(final int todoTask, final File source, final File destination) {
+        return todoTask;
+    }
 
-	public boolean knowsTodoTask(int todoTask) {
-		return false;
-	}
+    public int calculateTodoTask(final int synchronizationStatus) {
+        throw new RuntimeException("I do not know this synchronisation status: " + synchronizationStatus + ", please use knows() methods before.");
+    }
 
-	public List<Integer> getPossibleTasks(int synchronizationStatus) {
-		return null;
-	}
+    public boolean knowsSynchronizationStatus(final int synchronizationStatus) {
+        return false;
+    }
 
-	private void getStats(File source) {
-		if (source.isFile() && source.getName().endsWith(".java")) {
-			BufferedReader reader = null;
-			try {
-				reader = (new BufferedReader(new FileReader(source)));
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					++nbLines;
-					if (line.indexOf(" class ") > 0) {
-						++nbClasses;
-					}
-					if (line.indexOf(" interface ") > 0) {
-						++nbInterfaces;
-					}
-				}
-				++nbFiles;
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if (reader != null) reader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
+    public boolean knowsTodoTask(final int todoTask) {
+        return false;
+    }
 
-	public void processStopped(AbstractManager initiator) {
-	}
+    public List<Integer> getPossibleTasks(final int synchronizationStatus) {
+        return null;
+    }
 
-	public void synchronizeStopped(AbstractManager initiator) {
-	}
+    private void getStats(final File source) {
+        if (source.isFile() && source.getName().endsWith(".java")) {
+            BufferedReader reader = null;
+            try {
+                reader = (new BufferedReader(new FileReader(source)));
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    ++nbLines;
+                    if (line.indexOf("class ") > 0) {
+                        ++nbClasses;
+                    }
+                    if (line.indexOf("interface ") > 0) {
+                        ++nbInterfaces;
+                    }
+                    if (line.indexOf("@Test") > 0) {
+                        ++nbTest;
+                    }
+                }
+                ++nbFiles;
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 
-	public void processFinished(AbstractManager initiator) {
-	}
+    public void processStopped(final AbstractManager initiator) {
+    }
 
-	public void processStarted(AbstractManager initiator) {
-	}
+    public void synchronizeStopped(final AbstractManager initiator) {
+    }
 
-	public void synchronizeFinished(AbstractManager initiator) {
-		if (nbFiles > 0) {
-			System.out.println("Number of files: " + nbFiles);
-			System.out.println("Number of lines: " + nbLines);
-			System.out.println("Number of classes: " + nbClasses);
-			System.out.println("Number of interfaces: " + nbInterfaces);
-			System.out.println("Mean lines per file: " + nbLines / nbFiles);
-			System.out.println("Mean classes per file: " + 1f * nbClasses / nbFiles);
-		}
-	}
+    public void processFinished(final AbstractManager initiator) {
+    }
 
-	public void synchronizeStarted(AbstractManager initiator) {
-	}
+    public void processStarted(final AbstractManager initiator) {
+    }
+
+    public void synchronizeFinished(final AbstractManager initiator) {
+        if (nbFiles > 0) {
+            System.out.println("Number of files: " + nbFiles);
+            System.out.println("Number of lines: " + nbLines);
+            System.out.println("Number of classes: " + nbClasses);
+            System.out.println("Number of tests: " + nbTest);
+            System.out.println("Number of interfaces: " + nbInterfaces);
+            System.out.println("Mean lines per file: " + nbLines / nbFiles);
+            System.out.println("Mean classes per file: " + 1f * nbClasses / nbFiles);
+        }
+    }
+
+    public void synchronizeStarted(final AbstractManager initiator) {
+    }
 }
