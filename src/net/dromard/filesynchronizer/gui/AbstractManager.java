@@ -43,9 +43,9 @@ import net.dromard.filesynchronizer.treenode.FileSynchronizerTreeNode;
 public abstract class AbstractManager extends MouseAdapter implements ActionListener {
     private Thread synchronizer;
     private Thread processor;
-    private JComponent component;
-    private ArrayList<ManagerListener> listeners = new ArrayList<ManagerListener>();
-    private ArrayList<GuiManagerListener> guiManagerListeners = new ArrayList<GuiManagerListener>();
+    private final JComponent component;
+    private final ArrayList<ManagerListener> listeners = new ArrayList<ManagerListener>();
+    private final ArrayList<GuiManagerListener> guiManagerListeners = new ArrayList<GuiManagerListener>();
 
     protected AbstractManager(final JComponent component) {
         this.component = component;
@@ -90,8 +90,9 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
         List<Integer> possibleTask = new ArrayList<Integer>();
         possibleTask.add(possibleTask.size(), TODO_NOTHING);
         possibleTask.add(possibleTask.size(), TODO_RESET);
-        if (nodes.size() == 0)
+        if (nodes.size() == 0) {
             return null;
+        }
 
         int synchronizationStatus = nodes.get(0).getSynchronizationStatus();
         for (FileSynchronizerTodoTaskTreeNode node : nodes) {
@@ -223,10 +224,12 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 
         @Override
         public void interrupt() {
-            if (visitor != null)
+            if (visitor != null) {
                 visitor.abort();
+            }
         }
 
+        @Override
         public void run() {
             try {
                 fireProcessStarted();
@@ -260,6 +263,7 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
             }
         }
 
+        @Override
         public void run() {
             try {
                 fireSynchronizeStarted();
@@ -269,9 +273,9 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
                 model.setRootNode(root);
                 visitor = new FileTreeNodeVisitor(model);
                 root.accept(visitor);
-                setModelToComponent(getAbstractModel().getRootNode());
                 component.getParent().getParent().setCursor(Cursor.getDefaultCursor());
                 fireSynchronizeFinished();
+                setModelToComponent(getAbstractModel().getRootNode());
             } catch (Exception e) {
                 e.printStackTrace();
                 setModelToComponent(getAbstractModel().getRootNode());
@@ -349,7 +353,7 @@ public abstract class AbstractManager extends MouseAdapter implements ActionList
 
     /* ------------ Action Listener ------------ */
 
-    public final void actionPerformed(ActionEvent e) {
+    public final void actionPerformed(final ActionEvent e) {
         if (e.getActionCommand().equals("PROCESS")) {
             getManager().processSynchronization(new ArrayList<FileSynchronizerTreeNode>(getManager().getSelectedElements()));
         } else if (e.getActionCommand().equals("REFRESH")) {
