@@ -25,6 +25,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
@@ -40,7 +41,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     private static final String MENU_ITEM_DISPLAY_LOGS = "Display logs";
     private static final String MENU_ITEM_QUIT = "Quit";
     private static MainFrame mainFrame;
-    private ProgressBarHandler progress = new ProgressBarHandler(this);
+    private final ProgressBarHandler progress = new ProgressBarHandler(this);
     private AbstractManager tableManager;
     // private AbstractManager treeManager;
 
@@ -64,7 +65,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 
     private MainFrame() {
         System.setProperty("apple.laf.useScreenMenuBar", "true");
-        UIManager.put("SplitPaneUI", net.dromard.common.swing.ui.MySplitPaneUI.class.getName());
+        UIManager.put("SplitPaneUI", net.dromard.common.swing.ui.ThreePointsSplitPaneUI.class.getName());
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
@@ -77,7 +78,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         }
         progress.getInfiniteProgressPanel().addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(final MouseEvent e) {
                 if (e.getClickCount() > 1) {
                     int option = JOptionPane.showConfirmDialog(getContentPane(), "Do you want to stop process ?", "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                     if (option == JOptionPane.OK_OPTION) {
@@ -93,17 +94,17 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         return tableManager;
     }
 
-/*
-    private AbstractManager getTreeManager() {
-        return treeManager;
-    }
-*/
+    /*
+        private AbstractManager getTreeManager() {
+            return treeManager;
+        }
+    */
     public void init() {
-        this.setTitle("File Synchronizer");
+        setTitle("File Synchronizer");
         getContentPane().setLayout(new BorderLayout());
         getContentPane().setBackground(Color.WHITE);
 
-        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+        JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
         tabbedPane.setOpaque(false);
         // Table Manager
         JTable table = new JTable();
@@ -120,28 +121,28 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         tableManager.addListener(filesDetails);
         tabbedPane.addTab("Details", filesDetails);
 
-/*        
-        // Tree Manager
-        JTree tree = new JTree();
-        treeManager = new FileTreeManager(tree);
-        treeManager.addListener(this);
-        JScrollPane treeScrollPane = new JScrollPane(tree);
-        treeScrollPane.getViewport().setOpaque(false);
-        treeScrollPane.setOpaque(false);
-        treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        treeScrollPane.setOpaque(false);
-        JSplitPane leftSplitPanel = new JSplitPane();
-        leftSplitPanel.setLeftComponent(treeScrollPane);
-        FileDiffDetailsPanel filesDetails = new FileDiffDetailsPanel();
-        treeManager.addListener(filesDetails);
-        leftSplitPanel.setRightComponent(filesDetails);
-        leftSplitPanel.setOpaque(false);
-        leftSplitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
-        leftSplitPanel.setBorder(null);
-        leftSplitPanel.setBackground(Color.WHITE);
-        leftSplitPanel.setDividerLocation(240);
-        tabbedPane.addTab("Tree View", leftSplitPanel);
-*/
+        /*        
+                // Tree Manager
+                JTree tree = new JTree();
+                treeManager = new FileTreeManager(tree);
+                treeManager.addListener(this);
+                JScrollPane treeScrollPane = new JScrollPane(tree);
+                treeScrollPane.getViewport().setOpaque(false);
+                treeScrollPane.setOpaque(false);
+                treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
+                treeScrollPane.setOpaque(false);
+                JSplitPane leftSplitPanel = new JSplitPane();
+                leftSplitPanel.setLeftComponent(treeScrollPane);
+                FileDiffDetailsPanel filesDetails = new FileDiffDetailsPanel();
+                treeManager.addListener(filesDetails);
+                leftSplitPanel.setRightComponent(filesDetails);
+                leftSplitPanel.setOpaque(false);
+                leftSplitPanel.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+                leftSplitPanel.setBorder(null);
+                leftSplitPanel.setBackground(Color.WHITE);
+                leftSplitPanel.setDividerLocation(240);
+                tabbedPane.addTab("Tree View", leftSplitPanel);
+        */
         bottomSplitPanel = new JSplitPane();
         bottomSplitPanel.setTopComponent(tabbedPane);
         control = new JTextArea();
@@ -194,24 +195,26 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         } else {
             textareaOutputStream = new TextAreaOutputStream(control);
         }
-        this.bottomSplitPanel.setDividerLocation(0.75);
+        bottomSplitPanel.setDividerLocation(0.75);
     }
 
     private void disableLog() throws IOException {
         if (textareaOutputStream != null) {
             textareaOutputStream.enable(false);
         }
-        this.bottomSplitPanel.setDividerLocation(1d);
+        bottomSplitPanel.setDividerLocation(1d);
         scrollpane.setVisible(false);
     }
 
     private void selectSourceDestination() {
         File tmp = showChooserOpenDialog(this, "Select source ...", source);
-        if (tmp != null)
+        if (tmp != null) {
             source = tmp;
+        }
         tmp = showChooserOpenDialog(this, "Select destination ...", destination);
-        if (tmp != null)
+        if (tmp != null) {
             destination = tmp;
+        }
         synchronize();
     }
 
@@ -241,7 +244,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     /**
      * @param destination the destination to set
      */
-    public void setDestination(File destination) {
+    public void setDestination(final File destination) {
         this.destination = destination;
     }
 
@@ -257,7 +260,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     /**
      * @param source the source to set
      */
-    public void setSource(File source) {
+    public void setSource(final File source) {
         this.source = source;
     }
 
@@ -295,7 +298,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 
     /* ------------ Action Listener ------------ */
 
-    public final void actionPerformed(ActionEvent e) {
+    public final void actionPerformed(final ActionEvent e) {
         try {
             if (e.getActionCommand().equals(MENU_ITEM_PROCESS)) {
                 process();
@@ -319,7 +322,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
 
     /* ------------ Static methods ------------ */
 
-    public File showChooserOpenDialog(Component parent, String title, File currentDirectory) {
+    public File showChooserOpenDialog(final Component parent, final String title, final File currentDirectory) {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(currentDirectory);
         fileChooser.setDialogTitle(title);
