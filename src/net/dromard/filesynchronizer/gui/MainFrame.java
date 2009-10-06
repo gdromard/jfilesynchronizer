@@ -76,13 +76,12 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         for (ManagerListener listener : listeners) {
             getTableManager().addListener(listener);
         }
-        progress.getInfiniteProgressPanel().addMouseListener(new MouseAdapter() {
+        getGlassPane().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(final MouseEvent e) {
                 if (e.getClickCount() > 1) {
                     int option = JOptionPane.showConfirmDialog(getContentPane(), "Do you want to stop process ?", "Question", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                     if (option == JOptionPane.OK_OPTION) {
-                        // TODO stop process
                         getTableManager().stopCurrentProcess();
                     }
                 }
