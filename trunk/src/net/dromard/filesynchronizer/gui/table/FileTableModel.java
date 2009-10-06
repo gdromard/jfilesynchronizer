@@ -14,9 +14,9 @@ import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTreeNode;
 
 public class FileTableModel extends AbstractModel implements TableModel {
-    private List<TableModelListener> tableModelListeners = new ArrayList<TableModelListener>();
-    private Class[] columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class };
-    private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status" };
+    private final List<TableModelListener> tableModelListeners = new ArrayList<TableModelListener>();
+    private final Class[] columnsClass = new Class[]{ImageIcon.class, String.class, String.class, ImageIcon.class};
+    private final String[] columnsNames = new String[]{"Status", "File Path", "File Extension", "File Date Status"};
 
     // private Class[] columnsClass = new Class[] { ImageIcon.class, String.class, String.class, ImageIcon.class, Double.class, Double.class, Double.class, Double.class*/ };
     // private String[] columnsNames = new String[] { "Status", "File Path", "File Extension", "File Date Status", "Source length (ko)", "Destination length (ko)", "Source timestamp",
@@ -52,11 +52,17 @@ public class FileTableModel extends AbstractModel implements TableModel {
     }
 
     public FileSynchronizerTodoTaskTreeNode getNode(final int rowIndex) {
-        return (FileSynchronizerTodoTaskTreeNode) getRootNode().getChilds().get(rowIndex);
+        if (getRootNode().getChilds().size() > rowIndex) {
+            return (FileSynchronizerTodoTaskTreeNode) getRootNode().getChilds().get(rowIndex);
+        }
+        return null;
     }
 
     public Object getValueAt(final int rowIndex, final int columnIndex) {
         FileSynchronizerTodoTaskTreeNode node = getNode(rowIndex);
+        if (node == null) {
+            return null;
+        }
         if (columnIndex == 0) {
             return IconManager.getIcon(null, node.getTodoTask(), node);
         } else if (columnIndex == 1) {
@@ -122,7 +128,7 @@ public class FileTableModel extends AbstractModel implements TableModel {
         // Table is not editable
     }
 
-    public void add(FileSynchronizerTreeNode node) {
+    public void add(final FileSynchronizerTreeNode node) {
         FileSynchronizerTodoTaskTreeNode j = (FileSynchronizerTodoTaskTreeNode) node;
         if (j.isLeaf() && j.getTodoTask() != FileSynchronizerTodoTaskTreeNode.TODO_NOTHING) {
             getRootNode().addChild(j);

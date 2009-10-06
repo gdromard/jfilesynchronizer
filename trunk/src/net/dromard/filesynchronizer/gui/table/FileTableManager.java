@@ -14,11 +14,11 @@ import net.dromard.filesynchronizer.gui.MainFrame;
 import net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode;
 
 public class FileTableManager extends AbstractManager {
-    private JTable table;
-    private FileTableModel model = new FileTableModel(null);
+    private final JTable table;
+    private final FileTableModel model = new FileTableModel(null);
     private TableSorter sorterModel;
 
-    public FileTableManager(JTable table) {
+    public FileTableManager(final JTable table) {
         super(table);
         this.table = table;
         manage();
@@ -36,8 +36,8 @@ public class FileTableManager extends AbstractManager {
                 MainFrame.getInstance().getProgressBarHandler().stop();
             }
         };
+
         table.setModel(sorterModel);
-        sorterModel.setTableHeader(table.getTableHeader());
         // Set the first visible column to 100 pixels wide
         table.getColumnModel().getColumn(0).setMinWidth(40);
         table.getColumnModel().getColumn(0).setMaxWidth(70);
@@ -45,8 +45,10 @@ public class FileTableManager extends AbstractManager {
         table.getColumnModel().getColumn(2).setMaxWidth(120);
         table.getColumnModel().getColumn(3).setMinWidth(80);
         table.getColumnModel().getColumn(3).setMaxWidth(120);
+
+        sorterModel.setTableHeader(table);
         model.addTableModelListener(new TableModelListener() {
-            public void tableChanged(TableModelEvent e) {
+            public void tableChanged(final TableModelEvent e) {
                 sorterModel.fireTableRowsInserted(sorterModel.getRowCount() - 1, sorterModel.getRowCount() - 1);
             }
         });
@@ -58,7 +60,9 @@ public class FileTableManager extends AbstractManager {
 
     @Override
     protected void setModelToComponent(final FileSynchronizerTodoTaskTreeNode root) {
-        model.setRootNode(root);
+        if (root != null) {
+            model.setRootNode(root);
+        }
     }
 
     @Override
