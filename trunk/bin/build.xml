@@ -9,7 +9,14 @@
 		| Classpath
 		+-->
 	<path id="classpath">
-		<fileset dir="${lib.dir}"><include name="*.jar"/></fileset>
+		<fileset dir="${lib.dir}"><include name="${jar.common.name}-${jar.common.version}.jar"/></fileset>
+	</path>
+	
+	<!--+
+		| Additional ant task Classpath
+		+-->
+	<path id="task-classpath">
+		<fileset dir="${lib.dir}"><include name="dromard.common-1.9.jar"/></fileset>
 	</path>
 	
 	<!--+
@@ -48,7 +55,7 @@
 		</manifest>
 
 	    <jar basedir="${class.dir}" jarfile="${lib.dir}/${jar.name}-${project.version}.jar" manifest="${src.dir}/META-INF/MANIFEST.MF">
-	    	<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/dromard.common-1.9.jar"/>
+	    	<zipfileset excludes="META-INF/*.SF" src="${lib.dir}/${jar.common.name}-${jar.common.version}.jar"/>
 	    </jar>
     </target>
 	
@@ -138,7 +145,7 @@
 		| JNLP
 		| Java Web Start
 		+-->
-	<taskdef name="jnlp" classname="net.dromard.common.ant.JNLPTask" classpathref="classpath" />
+	<taskdef name="jnlp" classname="net.dromard.common.ant.JNLPTask" classpathref="task-classpath" />
 	
 	<target name="jnlp">
 		<!-- JNLP for JVM 1.5.x -->
