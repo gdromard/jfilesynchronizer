@@ -1,8 +1,6 @@
 package net.dromard.filesynchronizer.modules;
 
 import static net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode.SYNCHRONIZATION_FILES_EQUALS;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_ERROR;
-import static net.dromard.filesynchronizer.treenode.FileSynchronizerTodoTaskTreeNode.TODO_NOTHING;
 
 import java.io.File;
 import java.util.List;
@@ -21,11 +19,11 @@ public class ProgressDetailsModule implements IModule {
     }
 
     public char[] retrieveTodoTasks() {
-        return new char[] {};
+        return new char[]{};
     }
 
     public String[] retrieveTodoTaskNames() {
-        return new String[] {};
+        return new String[]{};
     }
 
     public void addImageTypes(final Map<Integer, String> imageTypeByTodoTask) {
@@ -40,27 +38,26 @@ public class ProgressDetailsModule implements IModule {
         return currentStatus;
     }
 
-    public int doTask(int todoTask, File source, File destination) {
-        if (todoTask != TODO_NOTHING && todoTask != TODO_ERROR) {
+    public void doneTask(final int alreadyDoneTask, final int todoTask, final File source, final File destination) {
+        if (todoTask == alreadyDoneTask) {
             ++nbBackedupFiles;
         }
         MainFrame.getInstance().getProgressBarHandler().setInfo(nbBackedupFiles + "/" + nbFilesToBackup + " " + (source != null ? source.getName() : destination.getName()));
-        return todoTask;
     }
 
-    public int calculateTodoTask(int synchronizationStatus) {
+    public int calculateTodoTask(final int synchronizationStatus) {
         throw new RuntimeException("I do not know this synchronisation status: " + synchronizationStatus + ", please use knows() methods before.");
     }
 
-    public boolean knowsSynchronizationStatus(int synchronizationStatus) {
+    public boolean knowsSynchronizationStatus(final int synchronizationStatus) {
         return false;
     }
 
-    public boolean knowsTodoTask(int todoTask) {
+    public boolean knowsTodoTask(final int todoTask) {
         return true;
     }
 
-    public List<Integer> getPossibleTasks(int synchronizationStatus) {
+    public List<Integer> getPossibleTasks(final int synchronizationStatus) {
         return null;
     }
 }

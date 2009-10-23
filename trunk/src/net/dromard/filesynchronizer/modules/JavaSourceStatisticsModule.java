@@ -12,7 +12,7 @@ import net.dromard.filesynchronizer.gui.ManagerListener;
 import net.dromard.filesynchronizer.treenode.FileSynchronizationStatusTreeNode;
 
 // Uncomment IModule to reactivate this module.
-public class JavaSourceStatisticsModule implements /*IModule,*/ ManagerListener {
+public class JavaSourceStatisticsModule implements /*IModule,*/ManagerListener {
     public int nbFiles = 0;
     public int nbLines = 0;
     public int nbClasses = 0;
@@ -41,8 +41,7 @@ public class JavaSourceStatisticsModule implements /*IModule,*/ ManagerListener 
         return currentStatus;
     }
 
-    public int doTask(final int todoTask, final File source, final File destination) {
-        return todoTask;
+    public void doTask(final int alreadyDoneTask, final int todoTask, final File source, final File destination) {
     }
 
     public int calculateTodoTask(final int synchronizationStatus) {

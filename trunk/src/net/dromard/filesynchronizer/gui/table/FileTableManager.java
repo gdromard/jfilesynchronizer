@@ -1,5 +1,6 @@
 package net.dromard.filesynchronizer.gui.table;
 
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ public class FileTableManager extends AbstractManager {
     }
 
     private void manage() {
+        table.setAutoscrolls(true);
         table.addMouseListener(this);
         setModelToComponent(null);
         table.setOpaque(false);
@@ -70,10 +72,24 @@ public class FileTableManager extends AbstractManager {
         ArrayList<FileSynchronizerTodoTaskTreeNode> selectedItems = new ArrayList<FileSynchronizerTodoTaskTreeNode>();
         int[] selectedRows = table.getSelectedRows();
         for (int i : selectedRows) {
-            i = sorterModel.modelIndex(i);
+            i = sorterModel.getModelIndex(i);
             selectedItems.add(getModel().getNode(i));
         }
         return selectedItems;
+    }
+
+    public int search(final String search) {
+        int[] selectedRows = table.getSelectedRows();
+        int startAt = 0;
+        if (selectedRows != null && selectedRows.length > 0) {
+            startAt = sorterModel.getModelIndex(selectedRows[0]);
+        }
+        int found = sorterModel.search(startAt, search, 1);
+        if (found > -1) {
+            table.setRowSelectionInterval(found, found);
+            table.scrollRectToVisible(new Rectangle(0, table.getRowHeight() * found, 80, table.getRowHeight()));
+        }
+        return found;
     }
 
     /**
