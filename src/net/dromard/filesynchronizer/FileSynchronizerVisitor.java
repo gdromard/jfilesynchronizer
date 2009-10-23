@@ -40,8 +40,8 @@ public class FileSynchronizerVisitor implements Visitor {
     /** */
     private boolean abort = false;
 
-    private Map<Integer, Integer> todo = new HashMap<Integer, Integer>();
-    private Map<Integer, Integer> done = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> todo = new HashMap<Integer, Integer>();
+    private final Map<Integer, Integer> done = new HashMap<Integer, Integer>();
 
     /**
      * Constructor with mode. It display all or simply a set of file comparaisons
@@ -61,20 +61,20 @@ public class FileSynchronizerVisitor implements Visitor {
 
     /**
      * Constructor with mode. 
-	 * It display all or simply a set of file comparaisons.
+     * It display all or simply a set of file comparisons.
      * @param mode the internal process mode.
      */
-    public FileSynchronizerVisitor(int mode) {
+    public FileSynchronizerVisitor(final int mode) {
         this();
         this.mode = mode;
     }
 
     /**
      * Constructor with mode. 
-	 * It display all or simply a set of file comparaisons.
+     * It display all or simply a set of file comparisons.
      * @param mode the internal process mode.
      */
-    public FileSynchronizerVisitor(int mode, final boolean displayOnly) {
+    public FileSynchronizerVisitor(final int mode, final boolean displayOnly) {
         this(displayOnly);
         this.mode = mode;
     }
@@ -91,8 +91,9 @@ public class FileSynchronizerVisitor implements Visitor {
         String sDone = "";
         for (int i = 0; i < TODO_TASKS.length; ++i) {
             sTodo += "[" + TODO_TASKS[i] + "] x " + todo.get(i) + "  ";
-            if (!displayOnly)
+            if (!displayOnly) {
                 sDone += "[" + TODO_TASKS[i] + "] x " + done.get(i) + "  ";
+            }
         }
         System.out.println(sTodo);
         System.out.println(sDone);
@@ -123,17 +124,19 @@ public class FileSynchronizerVisitor implements Visitor {
         processDisplay(node, todoTask, taskDone);
     }
 
-    private void incrementDone(int taskDone) {
+    private void incrementDone(final int taskDone) {
         Integer integer = done.get(taskDone);
-        if (integer == null)
+        if (integer == null) {
             integer = 0;
+        }
         done.put(taskDone, integer + 1);
     }
 
-    private void incrementTodo(int todoTask) {
+    private void incrementTodo(final int todoTask) {
         Integer integer = todo.get(todoTask);
-        if (integer == null)
+        if (integer == null) {
             integer = 0;
+        }
         todo.put(todoTask, integer + 1);
     }
 
@@ -170,61 +173,61 @@ public class FileSynchronizerVisitor implements Visitor {
         if (!displayOnly) {
             List<IModule> modules = ModuleManager.getInstance().getAvailableModules();
             switch (todoTask) {
-                // Source modifications
-                case TODO_DELETE_SOURCE:
-                    if (FileHelper.delete(fileBackup.getSource())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                case TODO_CREATE_SOURCE:
-                    if (create(fileBackup.getDestination(), fileBackup.createSource())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                case TODO_UPDATE_SOURCE:
-                    if (update(fileBackup.getDestination(), fileBackup.getSource())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                // Destination modifications
-                case TODO_DELETE_DESTINATION:
-                    if (FileHelper.delete(fileBackup.getDestination())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                case TODO_CREATE_DESTINATION:
-                    if (create(fileBackup.getSource(), fileBackup.createDestination())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                case TODO_UPDATE_DESTINATION:
-                    if (update(fileBackup.getSource(), fileBackup.getDestination())) {
-                        doneTask = todoTask;
-                    } else {
-                        doneTask = TODO_ERROR;
-                    }
-                    break;
-                // No modifications
-                case TODO_ERROR:
-                case TODO_NOTHING:
-                    doneTask = TODO_NOTHING;
-                default:
-                    for (IModule module : modules) {
-                        if (module.knowsTodoTask(todoTask)) {
-                            doneTask = module.doTask(todoTask, fileBackup.getSource(), fileBackup.getDestination());
-                        }
-                    }
-                    break;
+            // Source modifications
+            case TODO_DELETE_SOURCE:
+                if (FileHelper.delete(fileBackup.getSource())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            case TODO_CREATE_SOURCE:
+                if (create(fileBackup.getDestination(), fileBackup.createSource())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            case TODO_UPDATE_SOURCE:
+                if (update(fileBackup.getDestination(), fileBackup.getSource())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            // Destination modifications
+            case TODO_DELETE_DESTINATION:
+                if (FileHelper.delete(fileBackup.getDestination())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            case TODO_CREATE_DESTINATION:
+                if (create(fileBackup.getSource(), fileBackup.createDestination())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            case TODO_UPDATE_DESTINATION:
+                if (update(fileBackup.getSource(), fileBackup.getDestination())) {
+                    doneTask = todoTask;
+                } else {
+                    doneTask = TODO_ERROR;
+                }
+                break;
+            // No modifications
+            case TODO_ERROR:
+            case TODO_NOTHING:
+                doneTask = TODO_NOTHING;
+            default:
+                break;
+            }
+            for (IModule module : modules) {
+                if (module.knowsTodoTask(todoTask)) {
+                    module.doneTask(doneTask, todoTask, fileBackup.getSource(), fileBackup.getDestination());
+                }
             }
             // If all goes well reset todo task
             if (doneTask != TODO_ERROR && doneTask == todoTask) {
@@ -243,7 +246,7 @@ public class FileSynchronizerVisitor implements Visitor {
         if (source.isFile()) {
             if (!destination.canWrite()) {
                 try {
-                    if (!forceWrite || !((Boolean) ReflectHelper.invokeMethod(destination, "setWritable", new Object[] { Boolean.TRUE })).booleanValue()) {
+                    if (!forceWrite || !((Boolean) ReflectHelper.invokeMethod(destination, "setWritable", new Object[]{Boolean.TRUE})).booleanValue()) {
                         System.out.println("[WARNING] Source file '" + destination.getPath() + "' is read only.");
                         return false;
                     }

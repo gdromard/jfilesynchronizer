@@ -3,8 +3,9 @@ package net.dromard.filesynchronizer.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -25,21 +26,24 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 
+import net.dromard.common.swing.UIAction;
 import net.dromard.filesynchronizer.gui.table.FileTableManager;
 import net.dromard.filesynchronizer.modules.ModuleManager;
 
-public class MainFrame extends JFrame implements ActionListener, ManagerListener {
+public class MainFrame extends JFrame implements ManagerListener {
     private static final long serialVersionUID = 317260848003010016L;
     private static final String MENU_ITEM_SELECT_SOURCE = "Select Source/Destination";
     private static final String MENU_ITEM_SYNCHRONIZE = "Synchronize";
     private static final String MENU_ITEM_PROCESS = "Process";
     private static final String MENU_ITEM_DISPLAY_LOGS = "Display logs";
     private static final String MENU_ITEM_QUIT = "Quit";
+
     private static MainFrame mainFrame;
     private final ProgressBarHandler progress = new ProgressBarHandler(this);
     private AbstractManager tableManager;
@@ -51,6 +55,76 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
     private JSplitPane bottomSplitPanel;
     private TextAreaOutputStream textareaOutputStream;
     private JScrollPane scrollpane;
+    private String lastSearch = null;
+
+    // --------------- ACTIONS
+
+    private final UIAction MENU_ITEM_SELECT_SOURCE_ACTION = new UIAction(MENU_ITEM_SELECT_SOURCE, null, null, KeyStroke.getKeyStroke(KeyEvent.VK_O, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            selectSourceDestination();
+        }
+    };
+    private final UIAction MENU_ITEM_PROCESS_ACTION = new UIAction(MENU_ITEM_PROCESS, null, null, KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            process();
+        }
+    };
+    private final UIAction MENU_ITEM_SYNCHRONIZE_ACTION = new UIAction(MENU_ITEM_SYNCHRONIZE, null, null, KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            synchronize();
+        }
+    };
+    private final UIAction MENU_ITEM_DISPLAY_LOGS_ACTION = new UIAction(MENU_ITEM_DISPLAY_LOGS, null, null, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            try {
+                if (((JRadioButtonMenuItem) e.getSource()).isSelected()) {
+                    enableLog();
+                } else {
+                    disableLog();
+                }
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    };
+    private final UIAction MENU_ITEM_QUIT_ACTION = new UIAction(MENU_ITEM_QUIT, null, null, KeyStroke.getKeyStroke(KeyEvent.VK_Q, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            System.exit(0);
+        }
+    };
+    private final UIAction MENU_ITEM_SEARCH_ACTION = new UIAction("File", "Search for a file", null, KeyStroke.getKeyStroke(KeyEvent.VK_F, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            searchIntoTable(JOptionPane.showInputDialog(getInstance(), "Search string:"));
+        }
+    };
+    private final UIAction MENU_ITEM_SEARCH_NEXT_ACTION = new UIAction("Next", "Search next", null, KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.VK_SHIFT | Toolkit.getDefaultToolkit().getMenuShortcutKeyMask())) {
+        private static final long serialVersionUID = 0;
+
+        @Override
+        public void actionPerformed(final ActionEvent e) {
+            searchIntoTable(lastSearch);
+        }
+    };
+
+    // -------------- And Actions
 
     public static MainFrame getInstance() {
         if (mainFrame == null) {
@@ -155,36 +229,45 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         bottomSplitPanel.setDividerLocation(1d);
         getContentPane().add(bottomSplitPanel, BorderLayout.CENTER);
 
+        JMenu searchMenu = new JMenu("Search");
         JMenuBar menuBar = new JMenuBar();
         JMenu menu = new JMenu("File");
-        menuBar.add(menu);
 
-        JMenuItem selectSourceMenuItem = new JMenuItem(MENU_ITEM_SELECT_SOURCE);
-        selectSourceMenuItem.addActionListener(this);
+        JMenuItem selectSourceMenuItem = new JMenuItem(MENU_ITEM_SELECT_SOURCE_ACTION);
+        JMenuItem synchronizeMenuItem = new JMenuItem(MENU_ITEM_SYNCHRONIZE_ACTION);
+        JMenuItem processMenuItem = new JMenuItem(MENU_ITEM_PROCESS_ACTION);
+        JRadioButtonMenuItem displayLogMenuItem = new JRadioButtonMenuItem(MENU_ITEM_DISPLAY_LOGS_ACTION);
+        JMenuItem quitMenuItem = new JMenuItem(MENU_ITEM_QUIT_ACTION);
+        JMenuItem search = new JMenuItem(MENU_ITEM_SEARCH_ACTION);
+        JMenuItem searchNext = new JMenuItem(MENU_ITEM_SEARCH_NEXT_ACTION);
+
         menu.add(selectSourceMenuItem);
-
-        JMenuItem synchronizeMenuItem = new JMenuItem(MENU_ITEM_SYNCHRONIZE);
-        synchronizeMenuItem.addActionListener(this);
         menu.add(synchronizeMenuItem);
-
-        JMenuItem processMenuItem = new JMenuItem(MENU_ITEM_PROCESS);
-        processMenuItem.addActionListener(this);
         menu.add(processMenuItem);
-
         menu.addSeparator();
-
-        JRadioButtonMenuItem displayLogMenuItem = new JRadioButtonMenuItem(MENU_ITEM_DISPLAY_LOGS);
-        displayLogMenuItem.addActionListener(this);
         menu.add(displayLogMenuItem);
-
         menu.addSeparator();
-
-        JMenuItem quitMenuItem = new JMenuItem(MENU_ITEM_QUIT);
-        quitMenuItem.addActionListener(this);
         menu.add(quitMenuItem);
+
+        searchMenu.add(search);
+        searchMenu.add(searchNext);
+
+        menuBar.add(menu);
+        menuBar.add(searchMenu);
 
         setJMenuBar(menuBar);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    private void searchIntoTable(String search) {
+        if (search != null && search.length() > 0) {
+            if (((FileTableManager) tableManager).search(search) == -1) {
+                JOptionPane.showConfirmDialog(this, "Ooops no file was found with '" + search + "'", "Nothing found", JOptionPane.OK_OPTION);
+                search = null;
+            } else {
+                this.lastSearch = search;
+            }
+        }
     }
 
     private void enableLog() {
@@ -295,33 +378,24 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         progress.stop();
     }
 
-    /* ------------ Action Listener ------------ */
-
-    public final void actionPerformed(final ActionEvent e) {
-        try {
-            if (e.getActionCommand().equals(MENU_ITEM_PROCESS)) {
-                process();
-            } else if (e.getActionCommand().equals(MENU_ITEM_SYNCHRONIZE)) {
-                synchronize();
-            } else if (e.getActionCommand().equals(MENU_ITEM_SELECT_SOURCE)) {
-                selectSourceDestination();
-            } else if (e.getActionCommand().equals(MENU_ITEM_DISPLAY_LOGS)) {
-                if (((JRadioButtonMenuItem) e.getSource()).isSelected()) {
-                    enableLog();
-                } else {
-                    disableLog();
-                }
-            } else if (e.getActionCommand().equals(MENU_ITEM_QUIT)) {
-                System.exit(0);
-            }
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-    }
-
     /* ------------ Static methods ------------ */
 
     public File showChooserOpenDialog(final Component parent, final String title, final File currentDirectory) {
+        /*
+        FileDialog fileChooser = new FileDialog(this, title);
+        System.setProperty("apple.awt.fileDialogForDirectories", "true");
+        if (currentDirectory != null) {
+            fileChooser.setDirectory(currentDirectory.getAbsolutePath());
+        }
+        fileChooser.setTitle(title);
+        fileChooser.setMode(FileDialog.LOAD);
+
+        // Retreive selected file
+        fileChooser.setVisible(true);
+        if (fileChooser.getFile() != null) {
+            return new File(fileChooser.getDirectory() + "/" + fileChooser.getFile());
+        }
+        /**/
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setCurrentDirectory(currentDirectory);
         fileChooser.setDialogTitle(title);
@@ -331,6 +405,7 @@ public class MainFrame extends JFrame implements ActionListener, ManagerListener
         if (JFileChooser.APPROVE_OPTION == fileChooser.showOpenDialog(parent)) {
             return fileChooser.getSelectedFile();
         }
+        /**/
         return null;
     }
 
